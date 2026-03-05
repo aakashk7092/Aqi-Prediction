@@ -4,38 +4,70 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AQI Predictor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <main class="container">
-    <h1>AQI Prediction</h1>
-    <form id="aqi-form">
-      <label>City <input type="text" id="city" required placeholder="Delhi" /></label>
-      <label>Date (dd-mm-yy or dd-mm-yyyy) <input type="text" id="date" required placeholder="05-03-26" /></label>
-      <label>Model
-        <select id="model_name">
-          <option value="rf_model.pkl">Random Forest</option>
-          <option value="svr_model.pkl">SVR</option>
-          <option value="linear_model.pkl">Linear Regression</option>
-        </select>
-      </label>
-
-      <div class="grid">
-        <label>PM2.5 <input type="number" step="any" id="pm25" required /></label>
-        <label>PM10 <input type="number" step="any" id="pm10" required /></label>
-        <label>NO <input type="number" step="any" id="no" required /></label>
-        <label>NO2 <input type="number" step="any" id="no2" required /></label>
-        <label>NOx <input type="number" step="any" id="nox" required /></label>
-        <label>NH3 <input type="number" step="any" id="nh3" required /></label>
-        <label>CO <input type="number" step="any" id="co" required /></label>
-        <label>SO2 <input type="number" step="any" id="so2" required /></label>
-        <label>O3 <input type="number" step="any" id="o3" required /></label>
-        <label>Benzene <input type="number" step="any" id="benzene" required /></label>
-        <label>Toluene <input type="number" step="any" id="toluene" required /></label>
+  <main class="page">
+    <section class="panel">
+      <div class="header">
+        <h1>AQI Prediction Studio</h1>
+        <p>Estimate AQI, compare all models, and get instant health guidance.</p>
       </div>
-      <button type="submit">Predict AQI</button>
-    </form>
-    <p id="result"></p>
+
+      <form id="aqi-form">
+        <div class="toolbar">
+          <button type="button" id="sample-btn" class="ghost">Use Sample Data</button>
+          <button type="reset" class="ghost">Clear</button>
+        </div>
+
+        <div class="grid top">
+          <label>City <input type="text" id="city" required placeholder="Delhi" /></label>
+          <label>Date (dd-mm-yy or dd-mm-yyyy) <input type="text" id="date" required placeholder="05-03-26" /></label>
+          <label>Model
+            <select id="model_name">
+              <option value="rf_model.pkl">Random Forest</option>
+              <option value="svr_model.pkl">SVR</option>
+              <option value="linear_model.pkl">Linear Regression</option>
+            </select>
+          </label>
+          <label class="toggle">
+            <input type="checkbox" id="compare_all" />
+            Compare all models
+          </label>
+        </div>
+
+        <div class="grid pollutants">
+          <label>PM2.5 <input type="number" min="0" step="any" id="pm25" required /></label>
+          <label>PM10 <input type="number" min="0" step="any" id="pm10" required /></label>
+          <label>NO <input type="number" min="0" step="any" id="no" required /></label>
+          <label>NO2 <input type="number" min="0" step="any" id="no2" required /></label>
+          <label>NOx <input type="number" min="0" step="any" id="nox" required /></label>
+          <label>NH3 <input type="number" min="0" step="any" id="nh3" required /></label>
+          <label>CO <input type="number" min="0" step="any" id="co" required /></label>
+          <label>SO2 <input type="number" min="0" step="any" id="so2" required /></label>
+          <label>O3 <input type="number" min="0" step="any" id="o3" required /></label>
+          <label>Benzene <input type="number" min="0" step="any" id="benzene" required /></label>
+          <label>Toluene <input type="number" min="0" step="any" id="toluene" required /></label>
+        </div>
+
+        <button type="submit" id="submit-btn">Predict AQI</button>
+      </form>
+
+      <section id="result-panel" class="result-panel hidden">
+        <div class="result-main">
+          <div>
+            <p class="label">AQI Result</p>
+            <h2 id="main-aqi">--</h2>
+          </div>
+          <span id="aqi-badge" class="badge">--</span>
+        </div>
+        <p id="health-message"></p>
+        <div id="comparison-cards" class="comparison-grid"></div>
+      </section>
+    </section>
   </main>
 
   <script src="script.js"></script>

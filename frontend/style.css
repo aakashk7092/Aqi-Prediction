@@ -1,9 +1,12 @@
 :root {
-  --bg: #f3f5f9;
-  --card: #ffffff;
-  --text: #1f2937;
-  --accent: #0b6ef6;
-  --border: #d1d5db;
+  --bg-top: #f7efe2;
+  --bg-bottom: #dce9ff;
+  --card: #ffffffd9;
+  --text: #172337;
+  --accent: #1e67d8;
+  --accent-dark: #12489d;
+  --border: #bfd0e8;
+  --muted: #567;
 }
 
 * {
@@ -12,75 +15,195 @@
 
 body {
   margin: 0;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(145deg, #e6f0ff, #f8fafc);
+  font-family: "Space Grotesk", "Trebuchet MS", sans-serif;
+  background: radial-gradient(circle at top right, #ffe6b7 0%, transparent 45%),
+    linear-gradient(160deg, var(--bg-top), var(--bg-bottom));
   color: var(--text);
   min-height: 100vh;
-  display: grid;
-  place-items: center;
+  padding: 20px 12px;
 }
 
-.container {
-  width: min(94vw, 760px);
+.page {
+  width: min(100%, 1024px);
+  margin: 0 auto;
+}
+
+.panel {
   background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(8px);
+  border: 1px solid #ffffff;
+  border-radius: 24px;
+  padding: 20px;
+  box-shadow: 0 12px 26px rgba(8, 29, 63, 0.12);
 }
 
-h1 {
-  margin-top: 0;
-  text-align: center;
+.header h1 {
+  margin: 0;
+  font-size: clamp(28px, 5vw, 42px);
+}
+
+.header p {
+  margin: 6px 0 0;
+  color: var(--muted);
 }
 
 form {
   display: grid;
-  gap: 12px;
+  gap: 16px;
+  margin-top: 16px;
 }
 
 .grid {
   display: grid;
-  gap: 12px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.top {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.pollutants {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 label {
   display: grid;
-  gap: 6px;
-  font-size: 14px;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #304b6d;
+}
+
+.toggle {
+  align-self: end;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.toolbar {
+  display: flex;
+  gap: 10px;
 }
 
 input,
 select {
-  padding: 10px;
+  width: 100%;
+  padding: 11px 12px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 10px;
+  background: #f8fbff;
+  color: var(--text);
+  font-family: inherit;
+}
+
+input:focus,
+select:focus {
+  outline: 2px solid #9dc0ff;
+  border-color: #9dc0ff;
 }
 
 button {
-  margin-top: 8px;
-  padding: 10px 12px;
+  padding: 12px 14px;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   background: var(--accent);
   color: #fff;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
+  font-family: inherit;
+  transition: transform 0.14s ease, background 0.2s ease;
 }
 
 button:hover {
-  filter: brightness(0.95);
+  background: var(--accent-dark);
+  transform: translateY(-1px);
 }
 
-#result {
+.ghost {
+  border: 1px solid var(--border);
+  background: #eef4ff;
+  color: #25466e;
+}
+
+.result-panel {
   margin-top: 16px;
-  font-weight: 600;
-  text-align: center;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px;
+  background: #f8fbff;
+  animation: fadeIn 0.2s ease;
+}
+
+.result-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.result-main .label {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.result-main h2 {
+  margin: 3px 0 0;
+  font-size: 36px;
+}
+
+.badge {
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid;
+}
+
+.comparison-grid {
+  margin-top: 10px;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.model-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px;
+  background: #fff;
+}
+
+.model-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.model-card h3 {
+  margin: 6px 0 0;
+}
+
+.hidden {
+  display: none;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @media (max-width: 640px) {
-  .grid {
+  .top,
+  .pollutants,
+  .comparison-grid {
     grid-template-columns: 1fr;
+  }
+
+  .result-main h2 {
+    font-size: 30px;
   }
 }
