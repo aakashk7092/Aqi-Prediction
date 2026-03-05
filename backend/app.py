@@ -16,6 +16,20 @@ MODEL_HANDLERS = {
     "rf_model.pkl": predict_random_forest,
 }
 
+POLLUTANT_LIMITS = {
+    "PM2.5": 60,
+    "PM10": 100,
+    "NO": 40,
+    "NO2": 40,
+    "NOx": 80,
+    "NH3": 200,
+    "CO": 2,
+    "SO2": 80,
+    "O3": 100,
+    "Benzene": 5,
+    "Toluene": 10,
+}
+
 
 def _aqi_bucket(aqi_value):
     if aqi_value <= 50:
@@ -29,6 +43,47 @@ def _aqi_bucket(aqi_value):
     if aqi_value <= 400:
         return "Very Poor", "Respiratory illness on prolonged exposure."
     return "Severe", "Affects healthy people and seriously impacts patients."
+
+
+def _pollutant_insights(data):
+    levels = []
+    ratios = []
+    for field in POLLUTANT_FIELDS:
+        value = float(data[field])
+        limit = float(POLLUTANT_LIMITS[field])
+        ratio = 0.0 if limit <= 0 else value / limit
+        ratios.append(ratio)
+        levels.append(
+            {
+                "name": field,
+                "value": round(value, 2),
+                "limit": round(limit, 2),
+                "ratio": round(ratio, 3),
+            }
+        )
+
+    levels.sort(key=lambda x: x["ratio"], reverse=True)
+    top_three = levels[:3]
+    risk_score = round(min(100.0, (sum(ratios) / len(ratios)) * 100.0), 2)
+    return top_three, risk_score
+
+
+def _recommendations(category, top_pollutants):
+    tips = []
+    if category in {"Poor", "Very Poor", "Severe"}:
+        tips.append("Limit outdoor workouts and use an N95 mask in traffic-heavy areas.")
+        tips.append("Keep windows closed during peak pollution hours and use air purification indoors.")
+    else:
+        tips.append("Prefer morning/evening ventilation and avoid roadside exposure for long durations.")
+
+    names = [p["name"] for p in top_pollutants]
+    if "PM2.5" in names or "PM10" in names:
+        tips.append("Control dust sources and avoid open burning near residential zones.")
+    if "NO2" in names or "NOx" in names:
+        tips.append("Reduce vehicle idling and prefer public transport or carpooling.")
+    if "CO" in names:
+        tips.append("Ensure proper indoor ventilation and check combustion appliances.")
+    return tips[:4]
 
 
 def _validate_payload(data):
@@ -82,12 +137,17 @@ def predict():
 
         predicted_aqi = MODEL_HANDLERS[model_name](data)
         bucket, advice = _aqi_bucket(predicted_aqi)
+        top_pollutants, risk_score = _pollutant_insights(data)
+        recommendations = _recommendations(bucket, top_pollutants)
         return jsonify(
             {
                 "model": model_name,
                 "predicted_aqi": round(predicted_aqi, 2),
                 "aqi_category": bucket,
                 "health_message": advice,
+                "risk_score": risk_score,
+                "top_pollutants": top_pollutants,
+                "recommendations": recommendations,
             }
         )
     except ValueError as exc:
@@ -115,12 +175,17 @@ def predict_all():
 
         avg_aqi = sum(predictions.values()) / len(predictions)
         bucket, advice = _aqi_bucket(avg_aqi)
+        top_pollutants, risk_score = _pollutant_insights(data)
+        recommendations = _recommendations(bucket, top_pollutants)
         return jsonify(
             {
                 "predictions": predictions,
                 "average_aqi": round(avg_aqi, 2),
                 "aqi_category": bucket,
                 "health_message": advice,
+                "risk_score": risk_score,
+                "top_pollutants": top_pollutants,
+                "recommendations": recommendations,
             }
         )
     except ValueError as exc:

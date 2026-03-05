@@ -187,6 +187,244 @@ button:hover {
   margin: 6px 0 0;
 }
 
+.summary-stats {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.stat-chip {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: #23466f;
+}
+
+.chart-section {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border);
+}
+
+.insight-section,
+.scenario-section {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border);
+}
+
+.insight-section h3,
+.scenario-section h3 {
+  margin: 0 0 8px;
+  font-size: 15px;
+}
+
+.insight-section h4 {
+  margin: 10px 0 6px;
+  font-size: 13px;
+  color: #26466f;
+}
+
+.risk-wrap p {
+  margin: 0 0 5px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.risk-track {
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #e8effb;
+}
+
+.risk-fill {
+  width: 0%;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #28a745, #e6a700, #d93025);
+  transition: width 0.25s ease;
+}
+
+.risk-wrap strong {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 13px;
+}
+
+.insight-list {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.insight-list li {
+  font-size: 13px;
+  margin-bottom: 4px;
+  color: #26466f;
+}
+
+.scenario-controls {
+  display: flex;
+  align-items: end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.scenario-controls label {
+  min-width: 220px;
+}
+
+#scenario-label {
+  font-weight: 700;
+  color: #21456f;
+}
+
+.scenario-result {
+  margin-top: 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+  padding: 10px;
+  font-size: 13px;
+  color: #204366;
+}
+
+.chart-section h3 {
+  margin: 0 0 8px;
+  font-size: 15px;
+}
+
+.bar-chart {
+  display: grid;
+  gap: 8px;
+}
+
+.bar-row {
+  display: grid;
+  grid-template-columns: 130px 1fr 60px;
+  gap: 8px;
+  align-items: center;
+}
+
+.bar-label,
+.bar-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: #25466e;
+}
+
+.bar-track {
+  height: 12px;
+  border-radius: 999px;
+  background: #e8f0fd;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #3f8cff, #2f6ecf);
+}
+
+.history-panel {
+  margin-top: 18px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px;
+  background: #f8fbff;
+}
+
+.history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.history-header h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.history-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.history-wrap {
+  margin-top: 10px;
+  overflow-x: auto;
+}
+
+#history-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+#history-table th,
+#history-table td {
+  text-align: left;
+  padding: 9px 10px;
+  border-bottom: 1px solid #ebf1fa;
+  font-size: 13px;
+}
+
+#history-table thead th {
+  background: #eef4ff;
+  color: #26466f;
+}
+
+#history-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+#history-table tbody tr:hover {
+  background: #f6faff;
+}
+
+.trend-section {
+  margin-top: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+  padding: 10px;
+}
+
+.trend-section h4 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: #26466f;
+}
+
+#trend-chart {
+  width: 100%;
+  height: 220px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #f4f8ff, #ffffff);
+}
+
+.trend-legend {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.trend-legend span {
+  font-size: 12px;
+  color: #35567d;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 5px 9px;
+  background: #f7faff;
+}
+
 .hidden {
   display: none;
 }
@@ -201,6 +439,16 @@ button:hover {
   .pollutants,
   .comparison-grid {
     grid-template-columns: 1fr;
+  }
+
+  .bar-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .history-header {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .result-main h2 {

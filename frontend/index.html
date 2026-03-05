@@ -66,6 +66,72 @@
         </div>
         <p id="health-message"></p>
         <div id="comparison-cards" class="comparison-grid"></div>
+        <div id="summary-stats" class="summary-stats hidden"></div>
+        <section id="chart-section" class="chart-section hidden">
+          <h3>Model Comparison Graph</h3>
+          <div id="bar-chart" class="bar-chart"></div>
+        </section>
+        <section id="insight-section" class="insight-section hidden">
+          <h3>Smart Insights</h3>
+          <div class="risk-wrap">
+            <p>Risk Score</p>
+            <div class="risk-track"><div id="risk-fill" class="risk-fill"></div></div>
+            <strong id="risk-text">0/100</strong>
+          </div>
+          <div>
+            <h4>Top Pollutants</h4>
+            <ul id="top-pollutants" class="insight-list"></ul>
+          </div>
+          <div>
+            <h4>Recommended Actions</h4>
+            <ul id="recommendations" class="insight-list"></ul>
+          </div>
+        </section>
+        <section id="scenario-section" class="scenario-section">
+          <h3>What-if Simulator</h3>
+          <p>Simulate how AQI changes if all pollutant inputs shift by a percentage.</p>
+          <div class="scenario-controls">
+            <label>Pollutant Change %
+              <input type="range" id="scenario-shift" min="-50" max="100" value="10" />
+            </label>
+            <span id="scenario-label">+10%</span>
+            <button type="button" id="run-scenario" class="ghost">Run Scenario</button>
+          </div>
+          <div id="scenario-result" class="scenario-result hidden"></div>
+        </section>
+      </section>
+
+      <section class="history-panel">
+        <div class="history-header">
+          <h3>Prediction History</h3>
+          <div class="history-actions">
+            <button type="button" id="download-history" class="ghost">Download CSV</button>
+            <button type="button" id="clear-history" class="ghost">Clear History</button>
+          </div>
+        </div>
+        <div class="history-wrap">
+          <table id="history-table">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>City</th>
+                <th>Mode</th>
+                <th>AQI</th>
+                <th>Category</th>
+              </tr>
+            </thead>
+            <tbody id="history-body"></tbody>
+          </table>
+        </div>
+        <section id="trend-section" class="trend-section">
+          <h4>AQI Trend Over Time</h4>
+          <svg id="trend-chart" viewBox="0 0 640 220" preserveAspectRatio="none" aria-label="AQI trend chart"></svg>
+          <div class="trend-legend">
+            <span id="trend-min">Min: --</span>
+            <span id="trend-max">Max: --</span>
+            <span id="trend-last">Latest: --</span>
+          </div>
+        </section>
       </section>
     </section>
   </main>
