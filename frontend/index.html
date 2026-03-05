@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AQI Predictor</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="container">
+    <h1>AQI Prediction</h1>
+    <form id="aqi-form">
+      <label>City <input type="text" id="city" required placeholder="Delhi" /></label>
+      <label>Date (dd-mm-yy or dd-mm-yyyy) <input type="text" id="date" required placeholder="05-03-26" /></label>
+      <label>Model
+        <select id="model_name">
+          <option value="rf_model.pkl">Random Forest</option>
+          <option value="svr_model.pkl">SVR</option>
+          <option value="linear_model.pkl">Linear Regression</option>
+        </select>
+      </label>
+
+      <div class="grid">
+        <label>PM2.5 <input type="number" step="any" id="pm25" required /></label>
+        <label>PM10 <input type="number" step="any" id="pm10" required /></label>
+        <label>NO <input type="number" step="any" id="no" required /></label>
+        <label>NO2 <input type="number" step="any" id="no2" required /></label>
+        <label>NOx <input type="number" step="any" id="nox" required /></label>
+        <label>NH3 <input type="number" step="any" id="nh3" required /></label>
+        <label>CO <input type="number" step="any" id="co" required /></label>
+        <label>SO2 <input type="number" step="any" id="so2" required /></label>
+        <label>O3 <input type="number" step="any" id="o3" required /></label>
+        <label>Benzene <input type="number" step="any" id="benzene" required /></label>
+        <label>Toluene <input type="number" step="any" id="toluene" required /></label>
+      </div>
+      <button type="submit">Predict AQI</button>
+    </form>
+    <p id="result"></p>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
