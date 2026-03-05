@@ -1,10 +1,20 @@
 from flask import Flask, request, jsonify
 try:
-    from .predict import predict_aqi, POLLUTANT_FIELDS
+    from .linear_model import POLLUTANT_FIELDS, predict_linear
+    from .svr_model import predict_svr
+    from .random_forest_model import predict_random_forest
 except ImportError:
-    from predict import predict_aqi, POLLUTANT_FIELDS
+    from linear_model import POLLUTANT_FIELDS, predict_linear
+    from svr_model import predict_svr
+    from random_forest_model import predict_random_forest
 
 app = Flask(__name__)
+
+MODEL_HANDLERS = {
+    "linear_model.pkl": predict_linear,
+    "svr_model.pkl": predict_svr,
+    "rf_model.pkl": predict_random_forest,
+}
 
 @app.after_request
 def add_cors_headers(response):
@@ -40,7 +50,11 @@ def predict():
 
     try:
         model_name = data.get("model_name", "rf_model.pkl")
-        predicted_aqi = predict_aqi(data, model_name=model_name)
+        if model_name not in MODEL_HANDLERS:
+            supported = ", ".join(MODEL_HANDLERS.keys())
+            return jsonify({"error": f"Unsupported model_name. Use one of: {supported}"}), 400
+
+        predicted_aqi = MODEL_HANDLERS[model_name](data)
         return jsonify(
             {
                 "model": model_name,
