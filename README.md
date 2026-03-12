@@ -9,26 +9,23 @@ It includes a backend API for model predictions and a simple frontend interface 
 ## Project Structure
 
 ```
-aqi-ml-project
+aqi-prediction
 │
 ├── backend
 │   ├── app.py
 │   ├── linear_model.py
 │   ├── svr_model.py
 │   ├── random_forest_model.py
-│   │
-│   ├── dataset
-│   │   └── aqi_data.csv
-│   │
-│   └── models
-│       ├── linear_model.pkl
-│       ├── svr_model.pkl
-│       └── random_forest_model.pkl
 │
-├── frontend
+├─── data
+│   └──cleaned_aqi_data.csv       
+│
+├─── frontend
 │   ├── index.html
 │   ├── script.js
 │   └── style.css
+├───.gitattribute
+├───.gitignore
 │
 └── README.md
 ```
