@@ -179,9 +179,7 @@ body::before {
 
 /* ── Hero ───────────────────────────────────────────────────────────────── */
 .hero {
-  display: grid;
-  grid-template-columns: 1.5fr 0.9fr;
-  gap: 20px;
+  display: block;
   padding: 32px;
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
@@ -189,13 +187,23 @@ body::before {
   box-shadow: var(--shadow);
 }
 
-.hero h2 {
-  font-size: clamp(2.2rem, 4vw, 4.2rem);
-  line-height: 0.96;
-  max-width: 12ch;
+.hero-copy {
+  max-width: 900px;
 }
 
-.hero-text { max-width: 58ch; margin: 16px 0 0; line-height: 1.7; }
+.hero h2 {
+  font-size: clamp(2.6rem, 5vw, 5rem);
+  line-height: 1.02;
+  max-width: 12ch;
+  letter-spacing: -0.04em;
+}
+
+.hero-text {
+  max-width: 62ch;
+  margin: 20px 0 0;
+  line-height: 1.7;
+  font-size: 1.08rem;
+}
 
 .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
 

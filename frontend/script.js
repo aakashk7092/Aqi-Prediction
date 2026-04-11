@@ -202,7 +202,6 @@ function renderKpis() {
     { label:"Average AQI",      value:"214", detail:"Across reference city monitoring views" },
     { label:"Peak Season",      value:"Nov–Dec", detail:"Highest pollution pressure in winter" },
     { label:"Top Driver",       value:"PM2.5", detail:"Fine particulates dominate the risk profile" },
-    { label:"Monitoring Scope", value:"10 Inputs", detail:"All backend model features reflected in the UI" },
   ];
   overviewKpis.innerHTML = kpis.map(item => `
     <article class="stat-card stat-card-rich">

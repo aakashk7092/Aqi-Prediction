@@ -15,7 +15,6 @@
       <div class="brand-block">
         <p class="eyebrow">AQI Project</p>
         <h1>AQI Monitoring Dashboard</h1>
-        <p>Monitor pollution inputs, compare models, and present insights visually.</p>
       </div>
 
       <nav class="side-nav">
@@ -24,13 +23,6 @@
         <button class="nav-link" data-page="prediction">Prediction</button>
         <button class="nav-link" data-page="visualization">Visualization</button>
       </nav>
-
-      <div class="sidebar-card">
-        <span class="sidebar-label">Models Included</span>
-        <strong>Linear Regression</strong>
-        <strong>Random Forest</strong>
-        <strong>SVM</strong>
-      </div>
 
       <div class="sidebar-live">
         <span class="sidebar-label">Live AQI Pulse</span>
@@ -48,7 +40,6 @@
       <section id="home-page" class="page-view page-active">
         <header class="hero">
           <div class="hero-copy">
-            <p class="eyebrow">Homepage</p>
             <h2>Explore air quality from raw attributes to prediction output.</h2>
             <p class="hero-text">
               Organized into three modules: pollution analysis, AQI prediction, and visual dashboards.
@@ -58,20 +49,6 @@
               <button class="tab-button jump-button" data-page="analysis">Open Analysis</button>
               <button class="tab-button jump-button" data-page="prediction">Run Prediction</button>
               <button class="tab-button jump-button" data-page="visualization">View Charts</button>
-            </div>
-          </div>
-          <div class="hero-panel">
-            <div class="hero-stat">
-              <span class="hero-stat-label">Core Features</span>
-              <strong>Analysis, Prediction, Visualization</strong>
-            </div>
-            <div class="hero-stat">
-              <span class="hero-stat-label">Input Attributes</span>
-              <strong>10 Pollution Factors</strong>
-            </div>
-            <div class="hero-stat">
-              <span class="hero-stat-label">Prediction Output</span>
-              <strong>3 Model Results</strong>
             </div>
           </div>
         </header>
@@ -139,7 +116,6 @@
       <section id="analysis-page" class="page-view">
         <div class="section-heading">
           <div>
-            <p class="eyebrow">Page 1</p>
             <h2>Pollution Analysis</h2>
           </div>
         </div>
@@ -148,7 +124,6 @@
           <article class="panel panel-wide">
             <div class="panel-header">
               <h3>Dataset Attributes</h3>
-              <p>Pollutant features used for training the prediction models.</p>
             </div>
             <div class="chip-grid">
               <span class="data-chip">PM2.5</span>
@@ -197,7 +172,6 @@
           <article class="panel panel-wide">
             <div class="panel-header">
               <h3>Pollutant Risk Matrix</h3>
-              <p>Pollutant levels across monitoring regions.</p>
             </div>
             <div id="risk-matrix" class="heatmap-grid"></div>
           </article>
@@ -205,7 +179,6 @@
           <article class="panel panel-wide">
             <div class="panel-header">
               <h3>Pollutant to AQI Correlation</h3>
-              <p>How strongly each pollutant correlates with the final AQI output.</p>
             </div>
             <div class="correlation-grid" id="correlation-grid"></div>
           </article>
