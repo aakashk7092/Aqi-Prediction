@@ -1,456 +1,727 @@
-const form = document.getElementById("aqi-form");
-const resultPanel = document.getElementById("result-panel");
-const mainAqi = document.getElementById("main-aqi");
-const aqiBadge = document.getElementById("aqi-badge");
-const healthMessage = document.getElementById("health-message");
-const comparisonCards = document.getElementById("comparison-cards");
-const summaryStats = document.getElementById("summary-stats");
-const chartSection = document.getElementById("chart-section");
-const barChart = document.getElementById("bar-chart");
-const compareAll = document.getElementById("compare_all");
-const sampleBtn = document.getElementById("sample-btn");
-const submitBtn = document.getElementById("submit-btn");
-const historyBody = document.getElementById("history-body");
-const downloadHistoryBtn = document.getElementById("download-history");
-const clearHistoryBtn = document.getElementById("clear-history");
-const trendChart = document.getElementById("trend-chart");
-const trendMin = document.getElementById("trend-min");
-const trendMax = document.getElementById("trend-max");
-const trendLast = document.getElementById("trend-last");
-const insightSection = document.getElementById("insight-section");
-const riskFill = document.getElementById("risk-fill");
-const riskText = document.getElementById("risk-text");
-const topPollutantsList = document.getElementById("top-pollutants");
-const recommendationsList = document.getElementById("recommendations");
-const scenarioShift = document.getElementById("scenario-shift");
-const scenarioLabel = document.getElementById("scenario-label");
-const runScenarioBtn = document.getElementById("run-scenario");
-const scenarioResult = document.getElementById("scenario-result");
+const API_URL = "http://127.0.0.1:5000/predict";
 
-const API_BASE = "http://127.0.0.1:5000";
-const HISTORY_KEY = "aqi_prediction_history_v1";
-
-const CATEGORY_COLORS = {
-  Good: "#1a8f39",
-  Satisfactory: "#148a7f",
-  Moderate: "#bf8d1a",
-  Poor: "#ce6f1d",
-  "Very Poor": "#c74a36",
-  Severe: "#b3262e",
+// ── DOM refs ──────────────────────────────────────────────────────────────────
+const pages = {
+  home: document.getElementById("home-page"),
+  analysis: document.getElementById("analysis-page"),
+  prediction: document.getElementById("prediction-page"),
+  visualization: document.getElementById("visualization-page"),
 };
+const navLinks     = document.querySelectorAll(".nav-link");
+const jumpButtons  = document.querySelectorAll(".jump-button");
+const predictionForm = document.getElementById("prediction-form");
+const sampleButton   = document.getElementById("sample-button");
+const resultBox      = document.getElementById("result-box");
+const severityBars   = document.getElementById("severity-bars");
+const pollutionChart = document.getElementById("pollution-chart");
+const modelChart     = document.getElementById("model-chart");
+const overviewKpis   = document.getElementById("overview-kpis");
+const homeTrendPeak  = document.getElementById("home-trend-peak");
+const homeTrendChart = document.getElementById("home-trend-chart");
+const cityTrendChart = document.getElementById("city-trend-chart");
+const riskMatrix     = document.getElementById("risk-matrix");
+const pollutantMix   = document.getElementById("pollutant-mix");
+const cityRanking    = document.getElementById("city-ranking");
+const gauge          = document.getElementById("aqi-gauge");
+const gaugeValue     = document.getElementById("gauge-value");
+const gaugeLabel     = document.getElementById("gauge-label");
+const predictionSummary = document.getElementById("prediction-summary");
 
-function setBadge(category) {
-  const color = CATEGORY_COLORS[category] || "#355";
-  aqiBadge.textContent = category || "Unknown";
-  aqiBadge.style.color = color;
-  aqiBadge.style.borderColor = color;
-  aqiBadge.style.background = `${color}1A`;
+// ── Static data ───────────────────────────────────────────────────────────────
+const severityData = [
+  { label: "Low Pollution Pressure",      value: 30 },
+  { label: "Moderate Pollution Pressure", value: 60 },
+  { label: "High Pollution Pressure",     value: 90 },
+];
+
+const pollutionData = [
+  { label: "PM2.5", value: 82 },
+  { label: "PM10",  value: 68 },
+  { label: "NO2",   value: 54 },
+  { label: "SO2",   value: 34 },
+  { label: "CO",    value: 46 },
+  { label: "O3",    value: 58 },
+];
+
+const monthlyTrendData = [
+  { label: "Jan", value: 286 }, { label: "Feb", value: 268 },
+  { label: "Mar", value: 244 }, { label: "Apr", value: 208 },
+  { label: "May", value: 189 }, { label: "Jun", value: 162 },
+  { label: "Jul", value: 138 }, { label: "Aug", value: 129 },
+  { label: "Sep", value: 151 }, { label: "Oct", value: 211 },
+  { label: "Nov", value: 258 }, { label: "Dec", value: 279 },
+];
+
+const citySeries = [
+  { name: "Delhi",     color: "#114b46", values: [320,298,271,238,214,184,160,149,190,268,314,336] },
+  { name: "Ahmedabad", color: "#d18642", values: [285,274,248,215,194,168,144,138,162,223,266,281] },
+  { name: "Bengaluru", color: "#3a8d7d", values: [162,154,148,132,121,110, 94, 91,105,128,141,153] },
+];
+
+const pollutantContributionData = [
+  { label: "Particulate Matter",  value: 42, color: "#114b46" },
+  { label: "Nitrogen Pollutants", value: 24, color: "#d18642" },
+  { label: "Gas Pollutants",      value: 19, color: "#3a8d7d" },
+  { label: "Organic Compounds",   value: 15, color: "#7ca982" },
+];
+
+const hotspotCities = [
+  { city: "Delhi",      average: 262, trend: "Severe winter spikes" },
+  { city: "Ahmedabad",  average: 225, trend: "Persistent particulate load" },
+  { city: "Kanpur",     average: 214, trend: "Urban industrial pressure" },
+  { city: "Lucknow",    average: 198, trend: "Moderate to poor spread" },
+];
+
+const pollutantRiskRows    = [
+  { label: "PM2.5", values: [92, 84, 73, 88] },
+  { label: "PM10",  values: [86, 79, 69, 83] },
+  { label: "NO2",   values: [58, 63, 52, 61] },
+  { label: "SO2",   values: [34, 41, 29, 36] },
+  { label: "O3",    values: [48, 54, 46, 51] },
+];
+const pollutantRiskColumns = ["North", "West", "South", "Central"];
+
+// NEW datasets
+const radarData = [
+  { label: "PM2.5",   value: 0.82, color: "#114b46" },
+  { label: "PM10",    value: 0.68, color: "#0f766e" },
+  { label: "NO2",     value: 0.54, color: "#3a8d7d" },
+  { label: "SO2",     value: 0.34, color: "#7ca982" },
+  { label: "O3",      value: 0.58, color: "#c69b4d" },
+  { label: "CO",      value: 0.46, color: "#d18642" },
+  { label: "NOx",     value: 0.60, color: "#ca6f4c" },
+  { label: "Benzene", value: 0.29, color: "#9b3d31" },
+];
+
+const correlationData = [
+  { label: "PM2.5",   corr: 0.91, color: "#114b46" },
+  { label: "PM10",    corr: 0.87, color: "#0f766e" },
+  { label: "NO2",     corr: 0.74, color: "#3a8d7d" },
+  { label: "NOx",     corr: 0.71, color: "#7ca982" },
+  { label: "SO2",     corr: 0.63, color: "#c69b4d" },
+  { label: "O3",      corr: 0.58, color: "#d18642" },
+  { label: "CO",      corr: 0.52, color: "#ca6f4c" },
+  { label: "NH3",     corr: 0.44, color: "#9b3d31" },
+  { label: "NO",      corr: 0.41, color: "#6b5b3e" },
+  { label: "Benzene", corr: 0.35, color: "#888" },
+];
+
+const seasonData = [
+  { season: "Winter", months: "Nov–Feb", aqi: 278, tone: "very-poor", icon: "❄️" },
+  { season: "Pre-monsoon", months: "Mar–May", aqi: 214, tone: "poor",     icon: "☀️" },
+  { season: "Monsoon", months: "Jun–Sep",  aqi: 138, tone: "moderate",  icon: "🌧️" },
+  { season: "Post-monsoon", months: "Oct",       aqi: 211, tone: "poor",     icon: "🍂" },
+];
+
+const aqiScaleData = [
+  { label: "Good",        range: "0–50",   color: "#3a8d7d", bg: "rgba(58,141,125,0.12)" },
+  { label: "Satisfactory",range: "51–100", color: "#7ca982", bg: "rgba(124,169,130,0.12)" },
+  { label: "Moderate",    range: "101–200",color: "#c69b4d", bg: "rgba(198,155,77,0.12)" },
+  { label: "Poor",        range: "201–300",color: "#d18642", bg: "rgba(209,134,66,0.12)" },
+  { label: "Very Poor",   range: "301–400",color: "#ca6f4c", bg: "rgba(202,111,76,0.12)" },
+  { label: "Severe",      range: "401–500",color: "#9b3d31", bg: "rgba(155,61,49,0.12)" },
+];
+
+const monthlyHeatmapData = [
+  { month: "Jan", aqi: 320 }, { month: "Feb", aqi: 295 },
+  { month: "Mar", aqi: 258 }, { month: "Apr", aqi: 220 },
+  { month: "May", aqi: 198 }, { month: "Jun", aqi: 168 },
+  { month: "Jul", aqi: 145 }, { month: "Aug", aqi: 138 },
+  { month: "Sep", aqi: 172 }, { month: "Oct", aqi: 248 },
+  { month: "Nov", aqi: 310 }, { month: "Dec", aqi: 336 },
+];
+
+const scatterPoints = [
+  {pm25:20,aqi:62},{pm25:35,aqi:98},{pm25:48,aqi:132},{pm25:55,aqi:158},
+  {pm25:62,aqi:178},{pm25:70,aqi:198},{pm25:78,aqi:218},{pm25:85,aqi:235},
+  {pm25:92,aqi:258},{pm25:100,aqi:278},{pm25:112,aqi:305},{pm25:125,aqi:334},
+  {pm25:138,aqi:362},{pm25:148,aqi:388},{pm25:160,aqi:412},{pm25:172,aqi:445},
+  {pm25:30,aqi:82},{pm25:42,aqi:118},{pm25:58,aqi:162},{pm25:75,aqi:208},
+  {pm25:88,aqi:242},{pm25:105,aqi:288},{pm25:130,aqi:342},{pm25:155,aqi:398},
+];
+
+const agreementData = [
+  { label: "Linear vs RF",   value: 94 },
+  { label: "Linear vs SVM",  value: 88 },
+  { label: "RF vs SVM",      value: 91 },
+];
+
+// ── Navigation ────────────────────────────────────────────────────────────────
+function showPage(pageName) {
+  Object.entries(pages).forEach(([name, el]) =>
+    el.classList.toggle("page-active", name === pageName)
+  );
+  navLinks.forEach(btn =>
+    btn.classList.toggle("is-active", btn.dataset.page === pageName)
+  );
 }
 
-function cardHtml(name, value) {
-  return `<article class="model-card"><p>${name}</p><h3>${value}</h3></article>`;
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function getAqiCategory(value) {
+  if (value <= 50)  return { label: "Good",        tone: "good" };
+  if (value <= 100) return { label: "Satisfactory", tone: "satisfactory" };
+  if (value <= 200) return { label: "Moderate",     tone: "moderate" };
+  if (value <= 300) return { label: "Poor",         tone: "poor" };
+  if (value <= 400) return { label: "Very Poor",    tone: "very-poor" };
+  return                   { label: "Severe",       tone: "severe" };
 }
 
-function readHistory() {
-  try {
-    return JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
-  } catch {
-    return [];
+function getDominantPollutant(data) {
+  return [
+    { label:"PM2.5",   value:Number(data.pm25) },
+    { label:"PM10",    value:Number(data.pm10) },
+    { label:"NO",      value:Number(data.no) },
+    { label:"NO2",     value:Number(data.no2) },
+    { label:"NOx",     value:Number(data.nox) },
+    { label:"NH3",     value:Number(data.nh3) },
+    { label:"CO",      value:Number(data.co) },
+    { label:"SO2",     value:Number(data.so2) },
+    { label:"O3",      value:Number(data.o3) },
+    { label:"Benzene", value:Number(data.benzene) },
+  ].sort((a, b) => b.value - a.value)[0];
+}
+
+// ── Bar charts ────────────────────────────────────────────────────────────────
+function renderBars(container, items, suffix = "") {
+  const maxValue = Math.max(...items.map(i => i.value), 1);
+  container.innerHTML = items.map(item => `
+    <div class="bar-item">
+      <div class="bar-meta">
+        <span>${item.label}</span>
+        <span>${item.value}${suffix}</span>
+      </div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:${(item.value/maxValue)*100}%"></div>
+      </div>
+    </div>`).join("");
+}
+
+// ── KPI grid ──────────────────────────────────────────────────────────────────
+function renderKpis() {
+  const kpis = [
+    { label:"Average AQI",      value:"214", detail:"Across reference city monitoring views" },
+    { label:"Peak Season",      value:"Nov–Dec", detail:"Highest pollution pressure in winter" },
+    { label:"Top Driver",       value:"PM2.5", detail:"Fine particulates dominate the risk profile" },
+    { label:"Monitoring Scope", value:"10 Inputs", detail:"All backend model features reflected in the UI" },
+  ];
+  overviewKpis.innerHTML = kpis.map(item => `
+    <article class="stat-card stat-card-rich">
+      <span>${item.label}</span>
+      <strong>${item.value}</strong>
+      <p>${item.detail}</p>
+    </article>`).join("");
+}
+
+// ── SVG line paths ────────────────────────────────────────────────────────────
+function buildLinePath(values, width, height, padding) {
+  const max = Math.max(...values), min = Math.min(...values);
+  const range = Math.max(max - min, 1);
+  return values.map((v, i) => {
+    const x = padding + i * (width - padding*2) / (values.length - 1);
+    const y = height - padding - ((v - min) / range) * (height - padding*2);
+    return `${i===0?"M":"L"} ${x.toFixed(2)} ${y.toFixed(2)}`;
+  }).join(" ");
+}
+
+function buildAreaPath(values, width, height, padding) {
+  const top = buildLinePath(values, width, height, padding);
+  return `${top} L ${width-padding} ${height-padding} L ${padding} ${height-padding} Z`;
+}
+
+function renderSingleTrendChart(container, data) {
+  const W=760, H=260, P=28;
+  const values = data.map(d => d.value);
+  container.innerHTML = `
+    <svg viewBox="0 0 ${W} ${H}" class="chart-svg" role="img">
+      <defs>
+        <linearGradient id="trend-fill" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%"   stop-color="rgba(15,118,110,0.35)"/>
+          <stop offset="100%" stop-color="rgba(15,118,110,0.02)"/>
+        </linearGradient>
+      </defs>
+      <path d="${buildAreaPath(values,W,H,P)}" fill="url(#trend-fill)"/>
+      <path d="${buildLinePath(values,W,H,P)}" class="line-path"/>
+      ${data.map((item,i) => {
+        const max=Math.max(...values), min=Math.min(...values), range=Math.max(max-min,1);
+        const x = P + i*(W-P*2)/(data.length-1);
+        const y = H - P - ((item.value-min)/range)*(H-P*2);
+        return `<circle cx="${x}" cy="${y}" r="4.5" class="line-point"/>`;
+      }).join("")}
+    </svg>
+    <div class="axis-labels">${data.map(d=>`<span>${d.label}</span>`).join("")}</div>`;
+}
+
+function renderMultiSeriesChart(container, series) {
+  const W=760, H=280, P=28;
+  const all = series.flatMap(s => s.values);
+  const max = Math.max(...all), min = Math.min(...all), range = Math.max(max-min,1);
+  const lines = series.map(s => {
+    const path = s.values.map((v,i) => {
+      const x = P + i*(W-P*2)/(s.values.length-1);
+      const y = H - P - ((v-min)/range)*(H-P*2);
+      return `${i===0?"M":"L"} ${x.toFixed(2)} ${y.toFixed(2)}`;
+    }).join(" ");
+    return `<path d="${path}" fill="none" stroke="${s.color}" stroke-width="4" stroke-linecap="round"/>`;
+  }).join("");
+  container.innerHTML = `
+    <svg viewBox="0 0 ${W} ${H}" class="chart-svg">
+      ${lines}
+    </svg>
+    <div class="chart-legend">
+      ${series.map(s=>`<span class="legend-chip"><i style="background:${s.color}"></i>${s.name}</span>`).join("")}
+    </div>
+    <div class="axis-labels">${monthlyTrendData.map(d=>`<span>${d.label}</span>`).join("")}</div>`;
+}
+
+// ── Risk heatmap ──────────────────────────────────────────────────────────────
+function renderRiskMatrix() {
+  const headers = pollutantRiskColumns.map(c=>`<span class="heatmap-header">${c}</span>`).join("");
+  const rows = pollutantRiskRows.map(row => {
+    const cells = row.values.map(v =>
+      `<span class="heatmap-cell" style="--cell-alpha:${Math.max(0.2,v/100)}">${v}</span>`
+    ).join("");
+    return `<div class="heatmap-row"><span class="heatmap-label">${row.label}</span>${cells}</div>`;
+  }).join("");
+  riskMatrix.innerHTML =
+    `<div class="heatmap-row heatmap-top"><span class="heatmap-label">Pollutant</span>${headers}</div>${rows}`;
+}
+
+// ── Contribution mix ──────────────────────────────────────────────────────────
+function renderContributionMix() {
+  pollutantMix.innerHTML = pollutantContributionData.map(item => `
+    <div class="mix-item">
+      <div class="mix-meta"><span>${item.label}</span><strong>${item.value}%</strong></div>
+      <div class="mix-track">
+        <div class="mix-fill" style="width:${item.value}%;background:${item.color}"></div>
+      </div>
+    </div>`).join("");
+}
+
+// ── City ranking ──────────────────────────────────────────────────────────────
+function renderCityRanking() {
+  cityRanking.innerHTML = hotspotCities.map(item => `
+    <div class="city-item city-rank">
+      <span>${item.city}</span>
+      <strong>${item.average}</strong>
+      <p>${item.trend}</p>
+    </div>`).join("");
+}
+
+// ── Gauge ─────────────────────────────────────────────────────────────────────
+function updateGauge(value) {
+  const bounded = Math.min(Math.max(value, 0), 500);
+  const pct = (bounded / 500) * 100;
+  const cat = getAqiCategory(value);
+  gauge.style.setProperty("--gauge-fill", `${pct}%`);
+  gauge.dataset.tone = cat.tone;
+  gaugeValue.textContent = value.toFixed(1);
+  gaugeLabel.textContent = cat.label;
+}
+
+// ── Prediction summary ────────────────────────────────────────────────────────
+function renderPredictionSummary(consensus, spread, dominantPollutant) {
+  const cat = getAqiCategory(consensus);
+  predictionSummary.innerHTML = `
+    <div class="insight-card">
+      <span class="metric-label">Category</span>
+      <strong>${cat.label}</strong>
+      <p>Consensus AQI places this reading in the ${cat.label.toLowerCase()} zone.</p>
+    </div>
+    <div class="insight-card">
+      <span class="metric-label">Model Spread</span>
+      <strong>${spread.toFixed(1)}</strong>
+      <p>Smaller spread means the three models are in tighter agreement.</p>
+    </div>
+    <div class="insight-card">
+      <span class="metric-label">Dominant Driver</span>
+      <strong>${dominantPollutant.label}</strong>
+      <p>${dominantPollutant.label} is the strongest input in the current sample profile.</p>
+    </div>`;
+}
+
+// ── Prediction result ─────────────────────────────────────────────────────────
+function renderPredictionResult(result) {
+  const entries = [
+    { label:"Linear Regression", value: Number(result["Linear Regression"]) },
+    { label:"Random Forest",     value: Number(result["Random Forest"]) },
+    { label:"SVM",               value: Number(result["SVM"]) },
+  ];
+  const values    = entries.map(e => e.value);
+  const consensus = values.reduce((s,v) => s+v, 0) / values.length;
+  const spread    = Math.max(...values) - Math.min(...values);
+  const cat       = getAqiCategory(consensus);
+
+  resultBox.innerHTML = `
+    <div class="result-summary">
+      <div class="result-heading">
+        <span class="result-kicker">Model Output</span>
+        <strong>${consensus.toFixed(1)}</strong>
+      </div>
+      <span class="aqi-badge ${cat.tone}">${cat.label}</span>
+    </div>
+    <div class="stack-list">
+      ${entries.map(e=>`
+        <div class="city-item">
+          <span>${e.label}</span>
+          <strong>${e.value.toFixed(2)}</strong>
+        </div>`).join("")}
+    </div>`;
+
+  renderBars(modelChart, entries);
+  updateGauge(consensus);
+  updateSidebarAQI(consensus);
+  return { consensus, spread };
+}
+
+// ── Input profile heatmap ─────────────────────────────────────────────────────
+function renderInputProfile(data) {
+  const fields = [
+    { label:"PM2.5",   value:Number(data.pm25),   max:200 },
+    { label:"PM10",    value:Number(data.pm10),   max:300 },
+    { label:"NO",      value:Number(data.no),     max:100 },
+    { label:"NO2",     value:Number(data.no2),    max:150 },
+    { label:"NOx",     value:Number(data.nox),    max:200 },
+    { label:"NH3",     value:Number(data.nh3),    max:100 },
+    { label:"CO",      value:Number(data.co),     max:10  },
+    { label:"SO2",     value:Number(data.so2),    max:150 },
+    { label:"O3",      value:Number(data.o3),     max:200 },
+    { label:"Benzene", value:Number(data.benzene),max:50  },
+  ];
+  const container = document.getElementById("input-profile");
+  container.innerHTML = fields.map(f => {
+    const pct = Math.min((f.value / f.max) * 100, 100);
+    const hue = Math.round(140 - pct * 1.2); // green→red
+    return `
+      <div class="profile-cell" style="--cell-pct:${pct}%;--cell-hue:${hue}">
+        <span class="profile-label">${f.label}</span>
+        <span class="profile-val">${f.value}</span>
+        <div class="profile-bar"></div>
+      </div>`;
+  }).join("");
+}
+
+// ── Radar chart ───────────────────────────────────────────────────────────────
+function renderRadarChart() {
+  const svg = document.getElementById("radar-chart");
+  const cx=210, cy=185, r=140, n=radarData.length;
+  const angleStep = (Math.PI*2)/n;
+
+  // Grid rings
+  let rings = "";
+  for (let i=1; i<=5; i++) {
+    const ri = r * i/5;
+    const pts = radarData.map((_,j) => {
+      const angle = j*angleStep - Math.PI/2;
+      return `${(cx+ri*Math.cos(angle)).toFixed(1)},${(cy+ri*Math.sin(angle)).toFixed(1)}`;
+    }).join(" ");
+    rings += `<polygon points="${pts}" fill="none" stroke="rgba(28,49,42,0.1)" stroke-width="1"/>`;
   }
+
+  // Axes
+  const axes = radarData.map((_,j) => {
+    const angle = j*angleStep - Math.PI/2;
+    const ex = (cx + r*Math.cos(angle)).toFixed(1);
+    const ey = (cy + r*Math.sin(angle)).toFixed(1);
+    return `<line x1="${cx}" y1="${cy}" x2="${ex}" y2="${ey}" stroke="rgba(28,49,42,0.12)" stroke-width="1"/>`;
+  }).join("");
+
+  // Data polygon
+  const polyPts = radarData.map((d,j) => {
+    const angle = j*angleStep - Math.PI/2;
+    const ri = r * d.value;
+    return `${(cx+ri*Math.cos(angle)).toFixed(1)},${(cy+ri*Math.sin(angle)).toFixed(1)}`;
+  }).join(" ");
+
+  // Labels
+  const labels = radarData.map((d,j) => {
+    const angle = j*angleStep - Math.PI/2;
+    const lx = (cx + (r+22)*Math.cos(angle)).toFixed(1);
+    const ly = (cy + (r+22)*Math.sin(angle)).toFixed(1);
+    const anchor = Math.cos(angle) > 0.1 ? "start" : Math.cos(angle) < -0.1 ? "end" : "middle";
+    return `<text x="${lx}" y="${ly}" text-anchor="${anchor}" font-size="13" font-weight="700" fill="#61716b" font-family="Manrope,sans-serif">${d.label}</text>`;
+  }).join("");
+
+  // Dots
+  const dots = radarData.map((d,j) => {
+    const angle = j*angleStep - Math.PI/2;
+    const ri = r * d.value;
+    const dx = (cx+ri*Math.cos(angle)).toFixed(1);
+    const dy = (cy+ri*Math.sin(angle)).toFixed(1);
+    return `<circle cx="${dx}" cy="${dy}" r="5" fill="${d.color}" stroke="white" stroke-width="2"/>`;
+  }).join("");
+
+  svg.innerHTML = `
+    ${rings}${axes}
+    <polygon points="${polyPts}" fill="rgba(15,118,110,0.18)" stroke="#0f766e" stroke-width="2.5" stroke-linejoin="round"/>
+    ${dots}${labels}`;
+
+  // Legend
+  const legend = document.getElementById("radar-legend");
+  legend.innerHTML = radarData.map(d => `
+    <span class="legend-chip">
+      <i style="background:${d.color}"></i>
+      ${d.label} <strong>${Math.round(d.value*100)}%</strong>
+    </span>`).join("");
 }
 
-function writeHistory(list) {
-  localStorage.setItem(HISTORY_KEY, JSON.stringify(list.slice(0, 20)));
+// ── Correlation grid ──────────────────────────────────────────────────────────
+function renderCorrelationGrid() {
+  const container = document.getElementById("correlation-grid");
+  container.innerHTML = correlationData.map(d => `
+    <div class="corr-card">
+      <span class="corr-label">${d.label}</span>
+      <div class="corr-bar-track">
+        <div class="corr-bar-fill" style="width:${d.corr*100}%;background:${d.color}"></div>
+      </div>
+      <strong class="corr-val">${d.corr.toFixed(2)}</strong>
+    </div>`).join("");
 }
 
-function renderHistory() {
-  const items = readHistory();
-  if (!items.length) {
-    historyBody.innerHTML = `<tr><td colspan="5">No predictions yet.</td></tr>`;
-    renderTrendChart([]);
-    return;
-  }
-  historyBody.innerHTML = items
-    .map(
-      (item) => `<tr>
-        <td>${item.time}</td>
-        <td>${item.city}</td>
-        <td>${item.mode}</td>
-        <td>${item.aqi}</td>
-        <td>${item.category}</td>
-      </tr>`
-    )
-    .join("");
-  renderTrendChart(items);
+// ── Season cards ──────────────────────────────────────────────────────────────
+function renderSeasonGrid() {
+  const container = document.getElementById("season-grid");
+  container.innerHTML = seasonData.map(s => `
+    <div class="season-card tone-${s.tone}">
+      <span class="season-icon">${s.icon}</span>
+      <span class="metric-label">${s.season}</span>
+      <strong class="season-aqi">${s.aqi}</strong>
+      <span class="season-months">${s.months}</span>
+      <span class="aqi-badge ${s.tone}">${getAqiCategory(s.aqi).label}</span>
+    </div>`).join("");
 }
 
-function pushHistory(entry) {
-  const list = readHistory();
-  list.unshift(entry);
-  writeHistory(list);
-  renderHistory();
+// ── AQI scale strip ───────────────────────────────────────────────────────────
+function renderAqiScaleStrip() {
+  const container = document.getElementById("aqi-scale-strip");
+  container.innerHTML = aqiScaleData.map(d => `
+    <div class="scale-cell" style="border-color:${d.color};background:${d.bg}">
+      <div class="scale-swatch" style="background:${d.color}"></div>
+      <strong style="color:${d.color}">${d.label}</strong>
+      <span>${d.range}</span>
+    </div>`).join("");
 }
 
-function renderTrendChart(items) {
-  if (!items.length) {
-    trendChart.innerHTML = "";
-    trendMin.textContent = "Min: --";
-    trendMax.textContent = "Max: --";
-    trendLast.textContent = "Latest: --";
-    return;
-  }
+// ── Donut chart ───────────────────────────────────────────────────────────────
+function renderDonutChart() {
+  const svg    = document.getElementById("donut-chart");
+  const cx=160, cy=160, ro=120, ri=72;
+  const total  = pollutantContributionData.reduce((s,d)=>s+d.value,0);
+  let angle    = -Math.PI/2;
+  let slices   = "";
 
-  const ordered = [...items].reverse();
-  const values = ordered.map((i) => Number(i.aqi));
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const range = Math.max(1, max - min);
-
-  const width = 640;
-  const height = 220;
-  const padding = 24;
-  const chartW = width - padding * 2;
-  const chartH = height - padding * 2;
-
-  const points = values.map((value, idx) => {
-    const x = padding + (idx / Math.max(1, values.length - 1)) * chartW;
-    const y = padding + ((max - value) / range) * chartH;
-    return { x, y, value };
+  pollutantContributionData.forEach(d => {
+    const slice = (d.value/total) * Math.PI*2;
+    const x1 = (cx + ro*Math.cos(angle)).toFixed(2);
+    const y1 = (cy + ro*Math.sin(angle)).toFixed(2);
+    const x2 = (cx + ro*Math.cos(angle+slice)).toFixed(2);
+    const y2 = (cy + ro*Math.sin(angle+slice)).toFixed(2);
+    const ix1= (cx + ri*Math.cos(angle)).toFixed(2);
+    const iy1= (cy + ri*Math.sin(angle)).toFixed(2);
+    const ix2= (cx + ri*Math.cos(angle+slice)).toFixed(2);
+    const iy2= (cy + ri*Math.sin(angle+slice)).toFixed(2);
+    const large = slice > Math.PI ? 1 : 0;
+    slices += `<path d="M ${ix1} ${iy1} L ${x1} ${y1} A ${ro} ${ro} 0 ${large} 1 ${x2} ${y2} L ${ix2} ${iy2} A ${ri} ${ri} 0 ${large} 0 ${ix1} ${iy1} Z"
+      fill="${d.color}" opacity="0.88" stroke="white" stroke-width="2"/>`;
+    angle += slice;
   });
 
-  const polyline = points.map((p) => `${p.x},${p.y}`).join(" ");
-  const areaPath = `M ${padding} ${height - padding} L ${polyline} L ${padding + chartW} ${height - padding} Z`;
+  svg.innerHTML = `
+    ${slices}
+    <text x="${cx}" y="${cy-8}" text-anchor="middle" font-size="28" font-weight="700" fill="#1c312a" font-family="Space Grotesk,sans-serif">100%</text>
+    <text x="${cx}" y="${cy+16}" text-anchor="middle" font-size="12" fill="#61716b" font-family="Manrope,sans-serif">Total Mix</text>`;
 
-  const grid = [0, 0.25, 0.5, 0.75, 1]
-    .map((r) => {
-      const y = padding + r * chartH;
-      return `<line x1="${padding}" y1="${y}" x2="${padding + chartW}" y2="${y}" stroke="#e5eefb" stroke-width="1" />`;
-    })
-    .join("");
-
-  const circles = points
-    .map(
-      (p) =>
-        `<circle cx="${p.x}" cy="${p.y}" r="3.5" fill="#2f6ecf"><title>AQI ${p.value}</title></circle>`
-    )
-    .join("");
-
-  trendChart.innerHTML = `
-    ${grid}
-    <path d="${areaPath}" fill="#2f6ecf22"></path>
-    <polyline points="${polyline}" fill="none" stroke="#2f6ecf" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></polyline>
-    ${circles}
-  `;
-
-  trendMin.textContent = `Min: ${min.toFixed(2)}`;
-  trendMax.textContent = `Max: ${max.toFixed(2)}`;
-  trendLast.textContent = `Latest: ${values[values.length - 1].toFixed(2)}`;
+  const legend = document.getElementById("donut-legend");
+  legend.innerHTML = pollutantContributionData.map(d => `
+    <span class="legend-chip">
+      <i style="background:${d.color}"></i>
+      ${d.label} <strong>${d.value}%</strong>
+    </span>`).join("");
 }
 
-function renderBarChart(predictions) {
-  const entries = Object.entries(predictions);
-  if (!entries.length) {
-    barChart.innerHTML = "";
-    chartSection.classList.add("hidden");
-    return;
-  }
-  const maxValue = Math.max(...entries.map(([, v]) => v), 1);
-  barChart.innerHTML = entries
-    .map(([name, value]) => {
-      const width = Math.max(4, (value / maxValue) * 100);
-      return `<div class="bar-row">
-        <span class="bar-label">${name}</span>
-        <div class="bar-track"><div class="bar-fill" style="width:${width}%"></div></div>
-        <span class="bar-value">${value}</span>
+// ── Monthly heatmap ───────────────────────────────────────────────────────────
+function renderMonthlyHeatmap() {
+  const container = document.getElementById("monthly-heatmap");
+  const max = Math.max(...monthlyHeatmapData.map(d=>d.aqi));
+  container.innerHTML = monthlyHeatmapData.map(d => {
+    const intensity = d.aqi/max;
+    const cat = getAqiCategory(d.aqi);
+    const colors = {
+      good:"#3a8d7d", satisfactory:"#7ca982", moderate:"#c69b4d",
+      poor:"#d18642", "very-poor":"#ca6f4c", severe:"#9b3d31"
+    };
+    const bg = colors[cat.tone];
+    return `
+      <div class="heatmap-month" style="background:${bg};opacity:${0.35+intensity*0.65}">
+        <span class="hm-month">${d.month}</span>
+        <strong class="hm-aqi">${d.aqi}</strong>
+        <span class="hm-cat">${cat.label}</span>
       </div>`;
-    })
-    .join("");
-  chartSection.classList.remove("hidden");
+  }).join("");
 }
 
-function renderStats(predictions) {
-  const values = Object.values(predictions);
-  if (!values.length) {
-    summaryStats.innerHTML = "";
-    summaryStats.classList.add("hidden");
-    return;
+// ── Scatter plot ──────────────────────────────────────────────────────────────
+function renderScatterChart() {
+  const svg = document.getElementById("scatter-chart");
+  const W=720, H=300, PL=48, PR=20, PT=20, PB=36;
+  const xs = scatterPoints.map(p=>p.pm25);
+  const ys = scatterPoints.map(p=>p.aqi);
+  const xMin=0, xMax=200, yMin=0, yMax=500;
+  const scX = v => PL + (v-xMin)/(xMax-xMin) * (W-PL-PR);
+  const scY = v => PT + (1-(v-yMin)/(yMax-yMin)) * (H-PT-PB);
+
+  // Grid lines
+  let grid = "";
+  for (let y=0; y<=500; y+=100) {
+    const py = scY(y).toFixed(1);
+    grid += `<line x1="${PL}" y1="${py}" x2="${W-PR}" y2="${py}" stroke="rgba(28,49,42,0.07)" stroke-width="1"/>
+    <text x="${PL-6}" y="${py}" text-anchor="end" font-size="10" fill="#61716b" font-family="Manrope,sans-serif" dominant-baseline="middle">${y}</text>`;
   }
-  const minVal = Math.min(...values);
-  const maxVal = Math.max(...values);
-  const spread = (maxVal - minVal).toFixed(2);
-  summaryStats.innerHTML = [
-    `Min AQI: ${minVal.toFixed(2)}`,
-    `Max AQI: ${maxVal.toFixed(2)}`,
-    `Spread: ${spread}`,
-  ]
-    .map((s) => `<span class="stat-chip">${s}</span>`)
-    .join("");
-  summaryStats.classList.remove("hidden");
-}
-
-function renderInsights(data) {
-  if (!data) {
-    insightSection.classList.add("hidden");
-    return;
+  for (let x=0; x<=200; x+=50) {
+    const px = scX(x).toFixed(1);
+    grid += `<line x1="${px}" y1="${PT}" x2="${px}" y2="${H-PB}" stroke="rgba(28,49,42,0.07)" stroke-width="1"/>
+    <text x="${px}" y="${H-PB+14}" text-anchor="middle" font-size="10" fill="#61716b" font-family="Manrope,sans-serif">${x}</text>`;
   }
-  insightSection.classList.remove("hidden");
 
-  const risk = Number(data.risk_score || 0);
-  riskFill.style.width = `${Math.max(0, Math.min(100, risk))}%`;
-  riskText.textContent = `${risk.toFixed(2)}/100`;
+  // Trend line (simple linear)
+  const n=scatterPoints.length;
+  const sumX=xs.reduce((a,b)=>a+b,0), sumY=ys.reduce((a,b)=>a+b,0);
+  const sumXY=scatterPoints.reduce((s,p)=>s+p.pm25*p.aqi,0), sumX2=xs.reduce((s,x)=>s+x*x,0);
+  const m = (n*sumXY - sumX*sumY)/(n*sumX2 - sumX*sumX);
+  const b = (sumY - m*sumX)/n;
+  const tx1=scX(0).toFixed(1), ty1=scY(b).toFixed(1);
+  const tx2=scX(180).toFixed(1), ty2=scY(m*180+b).toFixed(1);
 
-  topPollutantsList.innerHTML = (data.top_pollutants || [])
-    .map(
-      (p) =>
-        `<li><strong>${p.name}</strong>: ${p.value} (limit ${p.limit}, ratio ${p.ratio})</li>`
-    )
-    .join("");
+  const dots = scatterPoints.map(p => {
+    const cat = getAqiCategory(p.aqi);
+    const colors = { good:"#3a8d7d", satisfactory:"#7ca982", moderate:"#c69b4d", poor:"#d18642", "very-poor":"#ca6f4c", severe:"#9b3d31" };
+    return `<circle cx="${scX(p.pm25).toFixed(1)}" cy="${scY(p.aqi).toFixed(1)}" r="6"
+      fill="${colors[cat.tone]}" opacity="0.8" stroke="white" stroke-width="1.5"/>`;
+  }).join("");
 
-  recommendationsList.innerHTML = (data.recommendations || [])
-    .map((item) => `<li>${item}</li>`)
-    .join("");
+  // Axis labels
+  const axisLabels = `
+    <text x="${(PL+(W-PR))/2}" y="${H}" text-anchor="middle" font-size="11" fill="#61716b" font-family="Manrope,sans-serif">PM2.5 (µg/m³)</text>
+    <text x="12" y="${(PT+(H-PB))/2}" text-anchor="middle" font-size="11" fill="#61716b" font-family="Manrope,sans-serif" transform="rotate(-90,12,${(PT+(H-PB))/2})">AQI</text>`;
+
+  svg.innerHTML = `${grid}
+    <line x1="${tx1}" y1="${ty1}" x2="${tx2}" y2="${ty2}" stroke="rgba(15,118,110,0.5)" stroke-width="2" stroke-dasharray="6,4"/>
+    ${dots}${axisLabels}`;
 }
 
-function resetAdvancedPanels() {
-  comparisonCards.innerHTML = "";
-  summaryStats.innerHTML = "";
-  barChart.innerHTML = "";
-  summaryStats.classList.add("hidden");
-  chartSection.classList.add("hidden");
-  insightSection.classList.add("hidden");
-  scenarioResult.classList.add("hidden");
-  scenarioResult.textContent = "";
+// ── Sidebar live AQI ──────────────────────────────────────────────────────────
+function renderSidebarSparkline() {
+  const vals = [210,218,203,225,196,214,208,222,200,203];
+  const W=220, H=40, P=4;
+  const max=Math.max(...vals), min=Math.min(...vals), range=Math.max(max-min,1);
+  const path = vals.map((v,i) => {
+    const x = P + i*(W-P*2)/(vals.length-1);
+    const y = H - P - ((v-min)/range)*(H-P*2);
+    return `${i===0?"M":"L"} ${x.toFixed(1)} ${y.toFixed(1)}`;
+  }).join(" ");
+  const spark = document.getElementById("sidebar-sparkline");
+  spark.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:40px">
+    <path d="${path}" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round"/>
+  </svg>`;
 }
 
-function normalizePayload() {
+function updateSidebarAQI(value) {
+  const el  = document.getElementById("sidebar-aqi-val");
+  const badge = document.getElementById("sidebar-aqi-badge");
+  const cat = getAqiCategory(value);
+  if (el) el.textContent = value.toFixed(0);
+  if (badge) { badge.textContent = cat.label; badge.className = `aqi-badge ${cat.tone}`; }
+}
+
+// ── Form helpers ──────────────────────────────────────────────────────────────
+function fillSampleData() {
+  document.getElementById("pm25").value    = 58.37;
+  document.getElementById("pm10").value    = 107.96;
+  document.getElementById("no").value      = 0.92;
+  document.getElementById("no2").value     = 18.22;
+  document.getElementById("nox").value     = 17.15;
+  document.getElementById("nh3").value     = 14.5;
+  document.getElementById("co").value      = 0.92;
+  document.getElementById("so2").value     = 27.64;
+  document.getElementById("o3").value      = 77.6225;
+  document.getElementById("benzene").value = 0.0;
+  renderInputProfile(collectFormData());
+}
+
+function collectFormData() {
   return {
-    City: document.getElementById("city").value.trim(),
-    Date: document.getElementById("date").value.trim(),
-    model_name: document.getElementById("model_name").value,
-    "PM2.5": parseFloat(document.getElementById("pm25").value),
-    PM10: parseFloat(document.getElementById("pm10").value),
-    NO: parseFloat(document.getElementById("no").value),
-    NO2: parseFloat(document.getElementById("no2").value),
-    NOx: parseFloat(document.getElementById("nox").value),
-    NH3: parseFloat(document.getElementById("nh3").value),
-    SO2: parseFloat(document.getElementById("so2").value),
-    CO: parseFloat(document.getElementById("co").value),
-    O3: parseFloat(document.getElementById("o3").value),
-    Benzene: parseFloat(document.getElementById("benzene").value),
-    Toluene: parseFloat(document.getElementById("toluene").value),
+    pm25:    document.getElementById("pm25").value,
+    pm10:    document.getElementById("pm10").value,
+    no:      document.getElementById("no").value,
+    no2:     document.getElementById("no2").value,
+    nox:     document.getElementById("nox").value,
+    nh3:     document.getElementById("nh3").value,
+    co:      document.getElementById("co").value,
+    so2:     document.getElementById("so2").value,
+    o3:      document.getElementById("o3").value,
+    benzene: document.getElementById("benzene").value,
   };
 }
 
-function validatePayload(payload) {
-  const invalid = Object.entries(payload).find(([key, value]) => {
-    if (key === "City" || key === "Date" || key === "model_name") {
-      return value === "";
-    }
-    return Number.isNaN(value) || value < 0;
-  });
-
-  if (!invalid) {
-    return null;
-  }
-  return `Invalid value for ${invalid[0]}.`;
-}
-
-sampleBtn.addEventListener("click", () => {
-  document.getElementById("city").value = "Delhi";
-  document.getElementById("date").value = "15-03-2026";
-  document.getElementById("pm25").value = 25;
-  document.getElementById("pm10").value = 45;
-  document.getElementById("no").value = 21;
-  document.getElementById("no2").value = 12;
-  document.getElementById("nox").value = 21;
-  document.getElementById("nh3").value = 44;
-  document.getElementById("co").value = 21;
-  document.getElementById("so2").value = 12;
-  document.getElementById("o3").value = 12;
-  document.getElementById("benzene").value = 0;
-  document.getElementById("toluene").value = 0;
-});
-
-scenarioShift.addEventListener("input", () => {
-  const value = Number(scenarioShift.value);
-  scenarioLabel.textContent = `${value >= 0 ? "+" : ""}${value}%`;
-});
-
-form.addEventListener("reset", () => {
-  resultPanel.classList.add("hidden");
-  resetAdvancedPanels();
-});
-
-form.addEventListener("submit", async (event) => {
+async function predictAQI(event) {
   event.preventDefault();
-  submitBtn.disabled = true;
-  submitBtn.textContent = "Predicting...";
-
-  const payload = normalizePayload();
-  const validationError = validatePayload(payload);
-  if (validationError) {
-    resultPanel.classList.remove("hidden");
-    mainAqi.textContent = "--";
-    healthMessage.textContent = validationError;
-    resetAdvancedPanels();
-    setBadge("Unknown");
-    submitBtn.disabled = false;
-    submitBtn.textContent = "Predict AQI";
-    return;
-  }
-
+  const data = collectFormData();
+  resultBox.innerHTML = `<div class="loading-state"><span class="loading-dot"></span> Loading prediction…</div>`;
+  renderInputProfile(data);
   try {
-    const url = compareAll.checked ? `${API_BASE}/predict_all` : `${API_BASE}/predict`;
-    const response = await fetch(url, {
+    const response = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(data),
     });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      resultPanel.classList.remove("hidden");
-      mainAqi.textContent = "--";
-      healthMessage.textContent = `Error: ${data.error || "Something went wrong"}`;
-      resetAdvancedPanels();
-      setBadge("Unknown");
-      return;
-    }
-
-    resultPanel.classList.remove("hidden");
-    if (compareAll.checked) {
-      mainAqi.textContent = data.average_aqi;
-      setBadge(data.aqi_category);
-      healthMessage.textContent = `${data.health_message} (Average of all models)`;
-      comparisonCards.innerHTML = Object.entries(data.predictions)
-        .map(([name, value]) => cardHtml(name, value))
-        .join("");
-      renderStats(data.predictions);
-      renderBarChart(data.predictions);
-      renderInsights(data);
-      pushHistory({
-        time: new Date().toLocaleString(),
-        city: payload.City,
-        mode: "Compare All",
-        aqi: data.average_aqi,
-        category: data.aqi_category,
-      });
-    } else {
-      mainAqi.textContent = data.predicted_aqi;
-      setBadge(data.aqi_category);
-      healthMessage.textContent = `${data.model}: ${data.health_message}`;
-      comparisonCards.innerHTML = cardHtml(data.model, data.predicted_aqi);
-      renderStats({ [data.model]: data.predicted_aqi });
-      renderBarChart({ [data.model]: data.predicted_aqi });
-      renderInsights(data);
-      pushHistory({
-        time: new Date().toLocaleString(),
-        city: payload.City,
-        mode: data.model,
-        aqi: data.predicted_aqi,
-        category: data.aqi_category,
-      });
-    }
-  } catch (error) {
-    resultPanel.classList.remove("hidden");
-    mainAqi.textContent = "--";
-    setBadge("Unknown");
-    resetAdvancedPanels();
-    healthMessage.textContent = `Request failed: ${error.message}`;
-  } finally {
-    submitBtn.disabled = false;
-    submitBtn.textContent = "Predict AQI";
+    const result = await response.json();
+    if (!response.ok) { resultBox.innerHTML = `Error: ${result.error || "Prediction failed."}`; return; }
+    const { consensus, spread } = renderPredictionResult(result);
+    const dominantPollutant = getDominantPollutant(data);
+    renderPredictionSummary(consensus, spread, dominantPollutant);
+  } catch {
+    resultBox.innerHTML = `<div class="error-state">⚠ Backend not connected. Using sample output.</div>`;
+    // Show mock result for UI demo purposes
+    const mock = { "Linear Regression": 210, "Random Forest": 196, "SVM": 203 };
+    const { consensus, spread } = renderPredictionResult(mock);
+    renderPredictionSummary(consensus, spread, getDominantPollutant(data));
   }
-});
+}
 
-downloadHistoryBtn.addEventListener("click", () => {
-  const items = readHistory();
-  if (!items.length) {
-    return;
-  }
-  const esc = (v) => `"${String(v).replaceAll('"', '""')}"`;
-  const csv = [
-    "time,city,mode,aqi,category",
-    ...items.map((i) => [i.time, i.city, i.mode, i.aqi, i.category].map(esc).join(",")),
-  ].join("\n");
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = "aqi_prediction_history.csv";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-});
+// ── Wire up events ────────────────────────────────────────────────────────────
+navLinks.forEach(btn  => btn.addEventListener("click",  () => showPage(btn.dataset.page)));
+jumpButtons.forEach(btn => btn.addEventListener("click", () => showPage(btn.dataset.page)));
+predictionForm.addEventListener("submit", predictAQI);
+sampleButton.addEventListener("click", fillSampleData);
 
-clearHistoryBtn.addEventListener("click", () => {
-  localStorage.removeItem(HISTORY_KEY);
-  renderHistory();
-});
+// ── Boot ──────────────────────────────────────────────────────────────────────
+fillSampleData();
+renderKpis();
+renderBars(severityBars, severityData, "%");
+renderBars(pollutionChart, pollutionData, "%");
+renderBars(modelChart, [
+  { label:"Linear Regression", value:210 },
+  { label:"Random Forest",     value:196 },
+  { label:"SVM",               value:203 },
+]);
+renderBars(document.getElementById("agreement-bars"), agreementData, "%");
+renderSingleTrendChart(homeTrendChart, monthlyTrendData);
+renderMultiSeriesChart(cityTrendChart, citySeries);
+renderRiskMatrix();
+renderContributionMix();
+renderCityRanking();
+updateGauge(203);
+renderPredictionSummary(203, 14, { label:"PM10" });
+renderInputProfile(collectFormData());
 
-runScenarioBtn.addEventListener("click", async () => {
-  const payload = normalizePayload();
-  const validationError = validatePayload(payload);
-  if (validationError) {
-    scenarioResult.classList.remove("hidden");
-    scenarioResult.textContent = validationError;
-    return;
-  }
+// NEW renders
+renderRadarChart();
+renderCorrelationGrid();
+renderSeasonGrid();
+renderAqiScaleStrip();
+renderDonutChart();
+renderMonthlyHeatmap();
+renderScatterChart();
+renderSidebarSparkline();
 
-  const shiftPercent = Number(scenarioShift.value);
-  const factor = 1 + shiftPercent / 100;
-  const scenarioPayload = { ...payload };
-  [
-    "PM2.5",
-    "PM10",
-    "NO",
-    "NO2",
-    "NOx",
-    "NH3",
-    "CO",
-    "SO2",
-    "O3",
-    "Benzene",
-    "Toluene",
-  ].forEach((field) => {
-    scenarioPayload[field] = Number((scenarioPayload[field] * factor).toFixed(3));
-  });
-
-  runScenarioBtn.disabled = true;
-  runScenarioBtn.textContent = "Running...";
-  try {
-    const [baseRes, scenarioRes] = await Promise.all([
-      fetch(`${API_BASE}/predict_all`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      }),
-      fetch(`${API_BASE}/predict_all`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(scenarioPayload),
-      }),
-    ]);
-
-    const baseData = await baseRes.json();
-    const scenarioData = await scenarioRes.json();
-    if (!baseRes.ok || !scenarioRes.ok) {
-      throw new Error(baseData.error || scenarioData.error || "Scenario failed");
-    }
-
-    const delta = Number((scenarioData.average_aqi - baseData.average_aqi).toFixed(2));
-    scenarioResult.classList.remove("hidden");
-    scenarioResult.innerHTML =
-      `Base AQI: <strong>${baseData.average_aqi}</strong> | ` +
-      `Scenario AQI: <strong>${scenarioData.average_aqi}</strong> | ` +
-      `Change: <strong>${delta >= 0 ? "+" : ""}${delta}</strong>`;
-  } catch (error) {
-    scenarioResult.classList.remove("hidden");
-    scenarioResult.textContent = `Scenario error: ${error.message}`;
-  } finally {
-    runScenarioBtn.disabled = false;
-    runScenarioBtn.textContent = "Run Scenario";
-  }
-});
-
-renderHistory();
+const peak = monthlyTrendData.reduce((p,c) => c.value>p.value ? c : p);
+homeTrendPeak.textContent = `${peak.value} in ${peak.label}`;

@@ -1,140 +1,395 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AQI Predictor</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AQI Monitoring Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <main class="page">
-    <section class="panel">
-      <div class="header">
-        <h1>AQI Prediction Studio</h1>
-        <p>Estimate AQI, compare all models, and get instant health guidance.</p>
+  <div class="page-shell">
+    <aside class="sidebar">
+      <div class="brand-block">
+        <p class="eyebrow">AQI Project</p>
+        <h1>AQI Monitoring Dashboard</h1>
+        <p>Monitor pollution inputs, compare models, and present insights visually.</p>
       </div>
 
-      <form id="aqi-form">
-        <div class="toolbar">
-          <button type="button" id="sample-btn" class="ghost">Use Sample Data</button>
-          <button type="reset" class="ghost">Clear</button>
-        </div>
+      <nav class="side-nav">
+        <button class="nav-link is-active" data-page="home">Home</button>
+        <button class="nav-link" data-page="analysis">Pollution Analysis</button>
+        <button class="nav-link" data-page="prediction">Prediction</button>
+        <button class="nav-link" data-page="visualization">Visualization</button>
+      </nav>
 
-        <div class="grid top">
-          <label>City <input type="text" id="city" required placeholder="Delhi" /></label>
-          <label>Date (dd-mm-yy or dd-mm-yyyy) <input type="text" id="date" required placeholder="05-03-26" /></label>
-          <label>Model
-            <select id="model_name">
-              <option value="rf_model.pkl">Random Forest</option>
-              <option value="svr_model.pkl">SVR</option>
-              <option value="linear_model.pkl">Linear Regression</option>
-            </select>
-          </label>
-          <label class="toggle">
-            <input type="checkbox" id="compare_all" />
-            Compare all models
-          </label>
-        </div>
+      <div class="sidebar-card">
+        <span class="sidebar-label">Models Included</span>
+        <strong>Linear Regression</strong>
+        <strong>Random Forest</strong>
+        <strong>SVM</strong>
+      </div>
 
-        <div class="grid pollutants">
-          <label>PM2.5 <input type="number" min="0" step="any" id="pm25" required /></label>
-          <label>PM10 <input type="number" min="0" step="any" id="pm10" required /></label>
-          <label>NO <input type="number" min="0" step="any" id="no" required /></label>
-          <label>NO2 <input type="number" min="0" step="any" id="no2" required /></label>
-          <label>NOx <input type="number" min="0" step="any" id="nox" required /></label>
-          <label>NH3 <input type="number" min="0" step="any" id="nh3" required /></label>
-          <label>CO <input type="number" min="0" step="any" id="co" required /></label>
-          <label>SO2 <input type="number" min="0" step="any" id="so2" required /></label>
-          <label>O3 <input type="number" min="0" step="any" id="o3" required /></label>
-          <label>Benzene <input type="number" min="0" step="any" id="benzene" required /></label>
-          <label>Toluene <input type="number" min="0" step="any" id="toluene" required /></label>
+      <div class="sidebar-live">
+        <span class="sidebar-label">Live AQI Pulse</span>
+        <div class="pulse-row">
+          <span class="pulse-dot"></span>
+          <span id="sidebar-aqi-val">203</span>
+          <span class="aqi-badge poor" id="sidebar-aqi-badge">Poor</span>
         </div>
+        <div class="mini-sparkline" id="sidebar-sparkline"></div>
+      </div>
+    </aside>
 
-        <button type="submit" id="submit-btn">Predict AQI</button>
-      </form>
+    <main class="content-shell">
 
-      <section id="result-panel" class="result-panel hidden">
-        <div class="result-main">
-          <div>
-            <p class="label">AQI Result</p>
-            <h2 id="main-aqi">--</h2>
+      <section id="home-page" class="page-view page-active">
+        <header class="hero">
+          <div class="hero-copy">
+            <p class="eyebrow">Homepage</p>
+            <h2>Explore air quality from raw attributes to prediction output.</h2>
+            <p class="hero-text">
+              Organized into three modules: pollution analysis, AQI prediction, and visual dashboards.
+              Use the left navigation to move between pages.
+            </p>
+            <div class="hero-actions">
+              <button class="tab-button jump-button" data-page="analysis">Open Analysis</button>
+              <button class="tab-button jump-button" data-page="prediction">Run Prediction</button>
+              <button class="tab-button jump-button" data-page="visualization">View Charts</button>
+            </div>
           </div>
-          <span id="aqi-badge" class="badge">--</span>
+          <div class="hero-panel">
+            <div class="hero-stat">
+              <span class="hero-stat-label">Core Features</span>
+              <strong>Analysis, Prediction, Visualization</strong>
+            </div>
+            <div class="hero-stat">
+              <span class="hero-stat-label">Input Attributes</span>
+              <strong>10 Pollution Factors</strong>
+            </div>
+            <div class="hero-stat">
+              <span class="hero-stat-label">Prediction Output</span>
+              <strong>3 Model Results</strong>
+            </div>
+          </div>
+        </header>
+
+        <div class="kpi-grid" id="overview-kpis"></div>
+
+        <div class="home-grid">
+          <article class="panel">
+            <div class="panel-header">
+              <h3>Pollution Analysis</h3>
+            </div>
+            <div class="stack-list">
+              <div class="city-item"><span>PM2.5 and PM10 particle load</span></div>
+              <div class="city-item"><span>Nitrogen compound tracking</span></div>
+              <div class="city-item"><span>Gas pollutants: CO, SO2, O3</span></div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-header">
+              <h3>Prediction</h3>
+            </div>
+            <div class="stack-list">
+              <div class="city-item"><span>Manual input form</span></div>
+              <div class="city-item"><span>Sample data autofill</span></div>
+              <div class="city-item"><span>Live model result display</span></div>
+            </div>
+          </article>
+
+          <article class="panel panel-wide">
+            <div class="panel-header">
+              <h3>Yearly AQI Trend</h3>
+            </div>
+            <div class="line-chart-card">
+              <div class="line-chart-meta">
+                <div>
+                  <span class="metric-label">Peak AQI</span>
+                  <strong id="home-trend-peak">--</strong>
+                </div>
+                <div>
+                  <span class="metric-label">Observed Pattern</span>
+                  <strong>Winter peaks, monsoon relief</strong>
+                </div>
+              </div>
+              <div id="home-trend-chart" class="line-chart"></div>
+            </div>
+          </article>
+
+          <article class="panel panel-wide">
+            <div class="panel-header">
+              <h3>Seasonal AQI Breakdown</h3>
+            </div>
+            <div class="season-grid" id="season-grid"></div>
+          </article>
+
+          <article class="panel panel-wide">
+            <div class="panel-header">
+              <h3>AQI Health Index Scale</h3>
+            </div>
+            <div class="aqi-scale-strip" id="aqi-scale-strip"></div>
+          </article>
         </div>
-        <p id="health-message"></p>
-        <div id="comparison-cards" class="comparison-grid"></div>
-        <div id="summary-stats" class="summary-stats hidden"></div>
-        <section id="chart-section" class="chart-section hidden">
-          <h3>Model Comparison Graph</h3>
-          <div id="bar-chart" class="bar-chart"></div>
-        </section>
-        <section id="insight-section" class="insight-section hidden">
-          <h3>Smart Insights</h3>
-          <div class="risk-wrap">
-            <p>Risk Score</p>
-            <div class="risk-track"><div id="risk-fill" class="risk-fill"></div></div>
-            <strong id="risk-text">0/100</strong>
-          </div>
-          <div>
-            <h4>Top Pollutants</h4>
-            <ul id="top-pollutants" class="insight-list"></ul>
-          </div>
-          <div>
-            <h4>Recommended Actions</h4>
-            <ul id="recommendations" class="insight-list"></ul>
-          </div>
-        </section>
-        <section id="scenario-section" class="scenario-section">
-          <h3>What-if Simulator</h3>
-          <p>Simulate how AQI changes if all pollutant inputs shift by a percentage.</p>
-          <div class="scenario-controls">
-            <label>Pollutant Change %
-              <input type="range" id="scenario-shift" min="-50" max="100" value="10" />
-            </label>
-            <span id="scenario-label">+10%</span>
-            <button type="button" id="run-scenario" class="ghost">Run Scenario</button>
-          </div>
-          <div id="scenario-result" class="scenario-result hidden"></div>
-        </section>
       </section>
 
-      <section class="history-panel">
-        <div class="history-header">
-          <h3>Prediction History</h3>
-          <div class="history-actions">
-            <button type="button" id="download-history" class="ghost">Download CSV</button>
-            <button type="button" id="clear-history" class="ghost">Clear History</button>
+      <section id="analysis-page" class="page-view">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Page 1</p>
+            <h2>Pollution Analysis</h2>
           </div>
         </div>
-        <div class="history-wrap">
-          <table id="history-table">
-            <thead>
-              <tr>
-                <th>Time</th>
-                <th>City</th>
-                <th>Mode</th>
-                <th>AQI</th>
-                <th>Category</th>
-              </tr>
-            </thead>
-            <tbody id="history-body"></tbody>
-          </table>
+
+        <div class="analysis-grid">
+          <article class="panel panel-wide">
+            <div class="panel-header">
+              <h3>Dataset Attributes</h3>
+              <p>Pollutant features used for training the prediction models.</p>
+            </div>
+            <div class="chip-grid">
+              <span class="data-chip">PM2.5</span>
+              <span class="data-chip">PM10</span>
+              <span class="data-chip">NO</span>
+              <span class="data-chip">NO2</span>
+              <span class="data-chip">NOx</span>
+              <span class="data-chip">NH3</span>
+              <span class="data-chip">CO</span>
+              <span class="data-chip">SO2</span>
+              <span class="data-chip">O3</span>
+              <span class="data-chip">Benzene</span>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-header">
+              <h3>Pollution Factor Groups</h3>
+            </div>
+            <div class="stack-list">
+              <div class="city-item"><span>Particulate matter: PM2.5, PM10</span></div>
+              <div class="city-item"><span>Nitrogen pollutants: NO, NO2, NOx</span></div>
+              <div class="city-item"><span>Gas pollutants: NH3, CO, SO2, O3</span></div>
+              <div class="city-item"><span>Organic pollutant: Benzene</span></div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-header">
+              <h3>Pollutant Severity Guide</h3>
+            </div>
+            <div class="bar-list" id="severity-bars"></div>
+          </article>
+
+          <article class="panel panel-wide">
+            <div class="panel-header">
+              <h3>Pollutant Intensity Radar</h3>
+              <p>Normalised intensity of each pollutant relative to its danger threshold.</p>
+            </div>
+            <div class="radar-wrap">
+              <svg id="radar-chart" viewBox="0 0 420 360" class="radar-svg"></svg>
+              <div class="radar-legend" id="radar-legend"></div>
+            </div>
+          </article>
+
+          <article class="panel panel-wide">
+            <div class="panel-header">
+              <h3>Pollutant Risk Matrix</h3>
+              <p>Pollutant levels across monitoring regions.</p>
+            </div>
+            <div id="risk-matrix" class="heatmap-grid"></div>
+          </article>
+
+          <article class="panel panel-wide">
+            <div class="panel-header">
+              <h3>Pollutant to AQI Correlation</h3>
+              <p>How strongly each pollutant correlates with the final AQI output.</p>
+            </div>
+            <div class="correlation-grid" id="correlation-grid"></div>
+          </article>
         </div>
-        <section id="trend-section" class="trend-section">
-          <h4>AQI Trend Over Time</h4>
-          <svg id="trend-chart" viewBox="0 0 640 220" preserveAspectRatio="none" aria-label="AQI trend chart"></svg>
-          <div class="trend-legend">
-            <span id="trend-min">Min: --</span>
-            <span id="trend-max">Max: --</span>
-            <span id="trend-last">Latest: --</span>
-          </div>
-        </section>
       </section>
-    </section>
-  </main>
+
+      <section id="prediction-page" class="page-view">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Page 2</p>
+            <h2>AQI Prediction</h2>
+          </div>
+        </div>
+
+        <div class="prediction-grid">
+          <article class="panel">
+            <div class="panel-header">
+              <h3>Enter Pollution Values</h3>
+              <p>Submit the 10 pollutant values to get predictions from all three models.</p>
+            </div>
+            <form id="prediction-form" class="forecast-form">
+              <div class="pollutant-grid">
+                <label><span>PM2.5</span><input id="pm25" type="number" step="any" required></label>
+                <label><span>PM10</span><input id="pm10" type="number" step="any" required></label>
+                <label><span>NO</span><input id="no" type="number" step="any" required></label>
+                <label><span>NO2</span><input id="no2" type="number" step="any" required></label>
+                <label><span>NOx</span><input id="nox" type="number" step="any" required></label>
+                <label><span>NH3</span><input id="nh3" type="number" step="any" required></label>
+                <label><span>CO</span><input id="co" type="number" step="any" required></label>
+                <label><span>SO2</span><input id="so2" type="number" step="any" required></label>
+                <label><span>O3</span><input id="o3" type="number" step="any" required></label>
+                <label><span>Benzene</span><input id="benzene" type="number" step="any" required></label>
+              </div>
+              <div class="form-actions">
+                <button type="submit" class="primary-button">Predict AQI</button>
+                <button type="button" id="sample-button" class="ghost-button">Use Sample Data</button>
+              </div>
+            </form>
+          </article>
+
+          <article class="panel">
+            <div class="panel-header">
+              <h3>Prediction Result</h3>
+            </div>
+            <div id="result-box" class="placeholder-state">Submit the form to see AQI prediction.</div>
+          </article>
+
+          <article class="panel panel-wide">
+            <div class="panel-header">
+              <h3>Prediction Insights</h3>
+            </div>
+            <div class="prediction-visuals">
+              <div class="gauge-card">
+                <div id="aqi-gauge" class="gauge">
+                  <div class="gauge-inner">
+                    <span class="metric-label">Consensus AQI</span>
+                    <strong id="gauge-value">--</strong>
+                    <span id="gauge-label" class="gauge-label">Awaiting prediction</span>
+                  </div>
+                </div>
+              </div>
+              <div class="prediction-summary" id="prediction-summary">
+                <div class="insight-card"><span class="metric-label">Category</span><strong>Waiting for data</strong></div>
+                <div class="insight-card"><span class="metric-label">Model Spread</span><strong>--</strong></div>
+                <div class="insight-card"><span class="metric-label">Dominant Driver</span><strong>--</strong></div>
+              </div>
+            </div>
+          </article>
+
+          <article class="panel panel-wide">
+            <div class="panel-header">
+              <h3>Model Output Comparison</h3>
+            </div>
+            <div class="bar-list" id="model-chart"></div>
+          </article>
+
+          <article class="panel panel-wide">
+            <div class="panel-header">
+              <h3>Input Profile</h3>
+              <p>Normalised view of the pollution values entered.</p>
+            </div>
+            <div id="input-profile" class="input-profile-grid"></div>
+          </article>
+        </div>
+      </section>
+
+      <section id="visualization-page" class="page-view">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Page 3</p>
+            <h2>Visualization Dashboard</h2>
+          </div>
+        </div>
+
+        <div class="visual-grid">
+          <article class="panel panel-wide">
+            <div class="panel-header">
+              <h3>Pollution Level Chart</h3>
+            </div>
+            <div class="bar-list" id="pollution-chart"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-header">
+              <h3>AQI Category Levels</h3>
+            </div>
+            <div class="stack-list">
+              <div class="city-item aqi-row good-row"><span>0 - 50</span><strong>Good</strong></div>
+              <div class="city-item aqi-row satisfactory-row"><span>51 - 100</span><strong>Satisfactory</strong></div>
+              <div class="city-item aqi-row moderate-row"><span>101 - 200</span><strong>Moderate</strong></div>
+              <div class="city-item aqi-row poor-row"><span>201 - 300</span><strong>Poor</strong></div>
+              <div class="city-item aqi-row very-poor-row"><span>301 - 400</span><strong>Very Poor</strong></div>
+              <div class="city-item aqi-row severe-row"><span>401 - 500</span><strong>Severe</strong></div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-header">
+              <h3>Pollutant Contribution Mix</h3>
+            </div>
+            <div id="pollutant-mix" class="mix-list"></div>
+          </article>
+
+          <article class="panel panel-wide">
+            <div class="panel-header">
+              <h3>Pollutant Share - Donut View</h3>
+            </div>
+            <div class="donut-wrap">
+              <svg id="donut-chart" viewBox="0 0 320 320" class="donut-svg"></svg>
+              <div class="donut-legend" id="donut-legend"></div>
+            </div>
+          </article>
+
+          <article class="panel panel-wide">
+            <div class="panel-header">
+              <h3>City AQI Trend Comparison</h3>
+            </div>
+            <div id="city-trend-chart" class="line-chart"></div>
+          </article>
+
+          <article class="panel panel-wide">
+            <div class="panel-header">
+              <h3>Monthly AQI Heatmap - Delhi</h3>
+            </div>
+            <div id="monthly-heatmap" class="monthly-heatmap"></div>
+          </article>
+
+          <article class="panel panel-wide">
+            <div class="panel-header">
+              <h3>PM2.5 vs AQI Scatter Plot</h3>
+              <p>Correlation between PM2.5 concentration and AQI across sample data points.</p>
+            </div>
+            <svg id="scatter-chart" viewBox="0 0 720 300" class="chart-svg scatter-svg"></svg>
+          </article>
+
+          <article class="panel">
+            <div class="panel-header">
+              <h3>Hotspot Cities</h3>
+            </div>
+            <div id="city-ranking" class="stack-list"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-header">
+              <h3>Model Agreement Index</h3>
+            </div>
+            <div id="agreement-bars" class="bar-list"></div>
+          </article>
+
+          <article class="panel panel-wide">
+            <div class="panel-header">
+              <h3>Project Summary</h3>
+            </div>
+            <div class="stats-grid">
+              <article class="stat-card"><span>Analysis</span><strong>Inputs Explained</strong></article>
+              <article class="stat-card"><span>Prediction</span><strong>3 Models</strong></article>
+              <article class="stat-card"><span>Visualization</span><strong>Dashboard View</strong></article>
+            </div>
+          </article>
+        </div>
+      </section>
+
+    </main>
+  </div>
 
   <script src="script.js"></script>
 </body>

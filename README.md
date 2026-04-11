@@ -1,419 +1,620 @@
-# Air Quality Index Prediction - Machine Learning Project
+# AQI Prediction Project
 
 ## Overview
-This project predicts the Air Quality Index (AQI) using multiple machine learning algorithms.  
-It includes a backend API for model predictions and a simple frontend interface to interact with the models and compare results.
+This project predicts **Air Quality Index (AQI)** using three machine learning models:
+
+- `Linear Regression`
+- `Random Forest Regressor`
+- `Support Vector Regression (SVR / SVM for regression)`
+
+The project also includes:
+
+- a simple **Flask backend API**
+- a **frontend dashboard**
+- a **pollution analysis script** for basic data visualization
+
+The goal of the project is to take pollution-related input values such as `PM2.5`, `PM10`, `NO2`, `CO`, and others, then estimate the AQI using multiple machine learning approaches.
 
 ---
 
 ## Project Structure
 
-```
-aqi-prediction
-│
-├── backend
-│   ├── app.py
-│   ├── linear_model.py
-│   ├── svr_model.py
-│   ├── random_forest_model.py
-│
-├─── data
-│   └──cleaned_aqi_data.csv       
-│
-├─── frontend
-│   ├── index.html
-│   ├── script.js
-│   └── style.css
-├───.gitattribute
-├───.gitignore
-│
-└── README.md
-```
-
----
-
-## Requirements
-
-Install the following before running the project:
-
-- Python 3.9 or higher
-- pip
-
-Install required Python libraries:
-
-```
-pip install pandas numpy scikit-learn flask joblib
+```text
+Aqi-Prediction
+|
+|-- backend
+|   |-- app.py
+|   |-- linear_model.py
+|   |-- random_forest_model.py
+|   |-- svr_model.py
+|   |-- pollution_analysis.py
+|
+|-- data
+|   |-- cleaned_aqi_data.csv
+|
+|-- frontend
+|   |-- index.html
+|   |-- style.css
+|   |-- script.js
+|
+|-- docs
+|   |-- linear_regression_explanation.md
+|   |-- random_forest_explanation.md
+|   |-- svr_explanation.md
+|   |-- backend_and_project_flow.md
+|
+|-- README.md
 ```
 
 ---
 
-## Clone the Repository
+## Detailed Separate Explanation Files
 
-```
-git clone https://github.com/aakashk7092/Machine-Learning-Projects.git
-cd Machine-Learning-Projects/aqi-ml-project
-```
+For file-by-file detailed explanations, read:
 
----
-
-## Run the Project
-
-Open terminal in the project root folder:
-
-```
-aqi-ml-project
-```
+- [Linear Regression Explanation](./docs/linear_regression_explanation.md)
+- [Random Forest Explanation](./docs/random_forest_explanation.md)
+- [SVR Explanation](./docs/svr_explanation.md)
+- [Backend and Project Flow](./docs/backend_and_project_flow.md)
 
 ---
 
-## Step 1: Train Machine Learning Models
+## Dataset Explanation
 
-Run each model training file one by one.
+The dataset file used in this project is:
 
-Train Linear Regression
+`data/cleaned_aqi_data.csv`
 
-```
-python backend/linear_model.py
-```
+It contains pollution-related measurements and AQI values.
 
-Train Support Vector Regression
+Important columns in the dataset include:
 
-```
-python backend/svr_model.py
-```
+- `PM2.5`
+- `PM10`
+- `NO`
+- `NO2`
+- `NOx`
+- `NH3`
+- `CO`
+- `SO2`
+- `O3`
+- `Benzene`
+- `AQI`
 
-Train Random Forest
+### Input Features Used in the Models
 
-```
-python backend/random_forest_model.py
-```
+The current models use these 10 input attributes:
 
-Trained models will be saved inside:
+- `PM2.5`
+- `PM10`
+- `NO`
+- `NO2`
+- `NOx`
+- `NH3`
+- `CO`
+- `SO2`
+- `O3`
+- `Benzene`
 
-```
-backend/models/
-```
+### Target Variable
 
----
+The target column is:
 
-## Step 2: Start Backend API
+- `AQI`
 
-```
-python backend/app.py
-```
-
-Backend will run at:
-
-```
-http://127.0.0.1:5000
-```
-
----
-
-## Step 3: Start Frontend
-
-Open a new terminal and run:
-
-```
-python -m http.server 5500 --directory frontend
-```
-
-Frontend will run at:
-
-```
-http://127.0.0.1:5500
-```
+This means the models learn the relationship between pollutant values and the final AQI value.
 
 ---
 
-## Step 4: Open the Application
+## How the Model Files Work
 
-Open the following URL in your browser:
+All three model files follow the same simple pipeline:
 
-```
-http://127.0.0.1:5500
-```
+1. Load the CSV dataset with `pandas`
+2. Select important pollution columns as features
+3. Select `AQI` as the target
+4. Fill missing values using column mean
+5. Split the dataset into training and testing data
+6. Train the model
+7. Predict AQI on test data
+8. Print predictions and model accuracy
 
----
+This same structure is used in:
 
-## API Testing (Optional)
-
-Check available models:
-
-```
-curl http://127.0.0.1:5000/models
-```
-
-Check backend status:
-
-```
-curl http://127.0.0.1:5000/
-```
+- [backend/linear_model.py](/c:/Users/aakas/OneDrive/Desktop/AQI%20Project/Aqi-Prediction/backend/linear_model.py)
+- [backend/random_forest_model.py](/c:/Users/aakas/OneDrive/Desktop/AQI%20Project/Aqi-Prediction/backend/random_forest_model.py)
+- [backend/svr_model.py](/c:/Users/aakas/OneDrive/Desktop/AQI%20Project/Aqi-Prediction/backend/svr_model.py)
 
 ---
 
-## Notes
+## Model 1: Linear Regression
 
-- Keep both backend and frontend terminals running.
-- If a model file error appears, retrain that model again.
+### What It Is
 
-Example:
+Linear Regression is one of the simplest machine learning algorithms.
 
+It assumes that the relationship between input features and target output is approximately linear.
+
+In simple words, it tries to fit a straight mathematical equation like this:
+
+```text
+AQI = b0 + b1(PM2.5) + b2(PM10) + b3(NO) + ...
 ```
-python backend/random_forest_model.py
-```
-
----
-
-## Machine Learning Models Used
-
-- Linear Regression
-- Support Vector Regression (SVR)
-- Random Forest Regression
-
-Random Forest is expected to give the best performance for AQI prediction.
-
----
-# Dataset Split
-
-The dataset was split using time-based splitting.
-
-Training Dataset  
-2015-01-01 to 2019-11-07  
-Total rows: 23624
-
-Testing Dataset  
-2019-11-07 to 2020-07-01  
-Total rows: 5907
-
-The models are trained using the training data and evaluated on unseen test data.
-
----
-
-# Machine Learning Models Used
-
-## Linear Regression
-
-Linear Regression is a statistical model that assumes a linear relationship between input features and the target variable.
-
-Example idea:
-
-AQI = b0 + b1x1 + b2x2 + b3x3 + ...
 
 Where:
 
-x = pollutant levels  
-b = model coefficients  
+- `b0` is the intercept
+- `b1`, `b2`, `b3` are coefficients learned by the model
 
-Advantages:
+### How It Works in This Project
 
-- Simple
-- Fast
-- Easy to interpret
+In [linear_model.py](/c:/Users/aakas/OneDrive/Desktop/AQI%20Project/Aqi-Prediction/backend/linear_model.py):
 
-Limitations:
+1. The model reads the dataset
+2. It selects the 10 pollution features
+3. It fills missing values using feature means
+4. It splits the data into training and testing sets
+5. It trains `LinearRegression()`
+6. It predicts AQI on test data
+7. It prints prediction values and `R2 score`
 
-- Cannot capture complex nonlinear patterns.
+### Why Use It
 
----
+- very simple
+- fast to train
+- easy to understand
+- good as a baseline model
 
-## Support Vector Regression (SVR)
+### Limitations
 
-SVR is a machine learning algorithm that tries to fit the best line while allowing some margin of error.
+- assumes mostly linear relationships
+- may not capture complex real-world AQI behavior
+- may underperform when pollutant interactions are nonlinear
 
-Instead of minimizing prediction errors directly, it tries to keep errors within a specific tolerance range.
+### Interpretation
 
-Advantages:
-
-- Handles nonlinear relationships
-- Good generalization ability
-
-Limitations:
-
-- Slower on large datasets.
-
----
-
-## Random Forest Regression
-
-Random Forest is an ensemble learning method.
-
-It builds many decision trees and averages their predictions.
-
-Steps:
-
-1. Random samples of the dataset are created.
-2. Multiple decision trees are trained.
-3. Predictions from all trees are averaged.
-
-Advantages:
-
-- Handles nonlinear relationships
-- Reduces overfitting
-- Works well on complex datasets
+Linear Regression is useful as a starting point because it shows whether AQI can be approximated using a direct weighted combination of pollutant values.
 
 ---
 
-# Evaluation Metrics Explained
+## Model 2: Random Forest Regressor
 
-## Mean Absolute Error (MAE)
+### What It Is
 
-MAE measures the average absolute difference between predicted and actual values.
+Random Forest is an ensemble learning algorithm.
 
-Formula:
+Instead of building one model, it builds **many decision trees**, then combines their predictions.
 
-MAE = average(|Actual − Predicted|)
+For regression, the final output is usually the **average** of all tree predictions.
+
+### How It Works in General
+
+1. Multiple random samples are taken from the dataset
+2. A decision tree is trained on each sample
+3. Each tree makes a prediction
+4. The final AQI prediction is the average of all tree outputs
+
+This reduces the weakness of using only one tree.
+
+### How It Works in This Project
+
+In [random_forest_model.py](/c:/Users/aakas/OneDrive/Desktop/AQI%20Project/Aqi-Prediction/backend/random_forest_model.py):
+
+1. The dataset is loaded
+2. The same 10 pollutant features are selected
+3. Missing values are filled
+4. The data is split into train and test sets
+5. `RandomForestRegressor(random_state=42)` is trained
+6. The model predicts AQI
+7. The script prints predictions and `R2 score`
+
+### Why Use It
+
+- handles nonlinear relationships better than linear regression
+- usually performs well on tabular data
+- more robust to noise
+- captures interactions between pollutants
+
+### Limitations
+
+- slower than linear regression
+- harder to interpret
+- larger memory usage
+
+### Interpretation
+
+Random Forest is often a strong practical model for AQI because pollutant behavior and AQI relationships are not always linear.
+
+---
+
+## Model 3: Support Vector Regression (SVR)
+
+### What It Is
+
+SVR is the regression version of Support Vector Machine.
+
+It tries to fit a function that keeps prediction errors within an acceptable margin while still staying as smooth as possible.
+
+### Main Idea
+
+Instead of trying to make every prediction exactly correct, SVR tries to:
+
+- keep most predictions within a certain tolerance
+- ignore very small errors
+- focus on important support points in the data
+
+### How It Works in This Project
+
+In [svr_model.py](/c:/Users/aakas/OneDrive/Desktop/AQI%20Project/Aqi-Prediction/backend/svr_model.py):
+
+1. The dataset is loaded
+2. The same 10 pollutant attributes are selected
+3. Missing values are filled
+4. Data is split into training and testing sets
+5. `SVR()` is trained
+6. The model predicts AQI
+7. The script prints predictions and `R2 score`
+
+### Why Use It
+
+- can model more complex relationships than linear regression
+- often performs well when the relationship is nonlinear
+- good theoretical foundation
+
+### Limitations
+
+- slower on larger datasets
+- sensitive to hyperparameters
+- harder to explain to beginners
+
+### Interpretation
+
+SVR is useful in AQI prediction because AQI can change in a nonlinear way when multiple pollutants increase together.
+
+---
+
+## Why These Three Models Were Chosen
+
+These three models are useful because they represent three different ways of learning:
+
+- `Linear Regression`: simple linear learning
+- `Random Forest`: ensemble tree-based learning
+- `SVR`: margin-based nonlinear learning
+
+This gives a good comparison between:
+
+- simple model
+- robust practical model
+- nonlinear mathematical model
+
+---
+
+## Data Preprocessing Explanation
+
+Before training, the data is prepared in the following way:
+
+### 1. Feature Selection
+
+Only the most relevant pollution columns are used.
+
+```python
+X = data[["PM2.5", "PM10", "NO", "NO2", "NOx", "NH3", "CO", "SO2", "O3", "Benzene"]]
+```
+
+### 2. Target Selection
+
+```python
+y = data["AQI"]
+```
+
+### 3. Missing Value Handling
+
+Missing values are replaced by the mean of the column:
+
+```python
+X = X.fillna(X.mean())
+y = y.fillna(y.mean())
+```
+
+This keeps the dataset usable without dropping too many rows.
+
+### 4. Train-Test Split
+
+The dataset is divided into:
+
+- `80% training data`
+- `20% testing data`
+
+```python
+train_test_split(X, y, test_size=0.2, random_state=42)
+```
+
+Training data is used to teach the model.
+Testing data is used to check performance on unseen records.
+
+---
+
+## Accuracy Metric Used
+
+The current scripts print:
+
+- `R2 Score`
+
+### R2 Score Explanation
+
+R2 score tells how well the model explains the variation in AQI values.
+
+```text
+R2 = 1.0   -> perfect prediction
+R2 = 0.0   -> no explanatory power
+R2 < 0     -> worse than a very basic baseline
+```
+
+In the model files, it is printed like this:
+
+```python
+print("Accuracy:", r2_score(y_test, prediction))
+```
+
+### Important Note
+
+This project labels `R2 score` as `"Accuracy"` in print statements because that is simple for beginners, but technically it is **not classification accuracy**.
+
+It is better to describe it as:
+
+- `R2 Score`
+- `Model Score`
+- `Regression Accuracy (R2)`
+
+---
+
+## Backend Explanation
+
+The backend file is:
+
+- [backend/app.py](/c:/Users/aakas/OneDrive/Desktop/AQI%20Project/Aqi-Prediction/backend/app.py)
+
+It uses Flask to expose an API endpoint.
+
+### What `app.py` Does
+
+1. Imports the three trained model objects from:
+   - `linear_model.py`
+   - `random_forest_model.py`
+   - `svr_model.py`
+2. Starts a Flask app
+3. Accepts input values from the frontend
+4. Sends the same input to all three models
+5. Returns all predictions as JSON
+
+### Main Route
+
+#### `GET /`
+
+Returns backend status information.
+
+#### `POST /predict`
+
+Accepts JSON data in this format:
+
+```json
+{
+  "pm25": 58.37,
+  "pm10": 107.96,
+  "no": 0.92,
+  "no2": 18.22,
+  "nox": 17.15,
+  "nh3": 14.5,
+  "co": 0.92,
+  "so2": 27.64,
+  "o3": 77.6225,
+  "benzene": 0.0
+}
+```
+
+The backend converts that input into:
+
+```python
+values = [[pm25, pm10, no, no2, nox, nh3, co, so2, o3, benzene]]
+```
+
+Then all three models predict:
+
+```python
+linear_pred = linear_model.predict(values)[0]
+rf_pred = rf_model.predict(values)[0]
+svm_pred = svm_model.predict(values)[0]
+```
+
+Finally it returns:
+
+```json
+{
+  "Linear Regression": 176.55,
+  "Random Forest": 380.13,
+  "SVM": 150.06
+}
+```
+
+---
+
+## Frontend Explanation
+
+The frontend files are:
+
+- [frontend/index.html](/c:/Users/aakas/OneDrive/Desktop/AQI%20Project/Aqi-Prediction/frontend/index.html)
+- [frontend/style.css](/c:/Users/aakas/OneDrive/Desktop/AQI%20Project/Aqi-Prediction/frontend/style.css)
+- [frontend/script.js](/c:/Users/aakas/OneDrive/Desktop/AQI%20Project/Aqi-Prediction/frontend/script.js)
+
+### Frontend Pages
+
+The frontend currently contains:
+
+- `Home page`
+- `Pollution Analysis page`
+- `Prediction page`
+- `Visualization page`
+
+### What the Frontend Does
+
+- lets the user move between pages
+- displays project information
+- shows pollutant feature explanations
+- allows users to input pollution values
+- calls the Flask backend
+- displays predicted AQI from all three models
+- shows dashboard visuals such as trend charts, KPI cards, pollutant mix bars, city ranking, and a live AQI gauge
+
+### New Visual Features Added
+
+The frontend dashboard now includes:
+
+- `overview KPI cards` for AQI, seasonality, and feature coverage
+- `AQI trend charts` for monthly movement across the year
+- `city comparison lines` for presentation-friendly trend comparison
+- `pollutant risk matrix` to highlight pressure zones
+- `live AQI gauge` that updates after backend prediction
+- `prediction insight cards` for category, model spread, and dominant pollutant
+- `pollutant contribution mix` and `hotspot city ranking`
+
+---
+
+## Pollution Analysis Script
+
+The file:
+
+- [backend/pollution_analysis.py](/c:/Users/aakas/OneDrive/Desktop/AQI%20Project/Aqi-Prediction/backend/pollution_analysis.py)
+
+is used for basic visualization of the dataset.
+
+### What It Does
+
+1. Loads the AQI dataset
+2. Prints dataset preview
+3. Checks missing values
+4. Fills missing values
+5. Draws:
+   - AQI distribution histogram
+   - PM2.5 vs AQI scatter plot
+   - PM10 vs AQI scatter plot
+   - correlation heatmap
+
+### Purpose
+
+This script helps understand:
+
+- AQI distribution
+- relation between pollutants and AQI
+- overall correlations between variables
+
+---
+
+## End-to-End Working Flow
+
+Here is how the complete system works:
+
+1. Dataset is loaded from CSV
+2. Three models are trained on pollutant features
+3. Frontend takes pollution input from the user
+4. Frontend sends input to Flask backend
+5. Backend passes the same values to all three models
+6. Each model predicts AQI
+7. Backend returns JSON response
+8. Frontend displays the AQI values
+
+---
+
+## How to Run the Project
+
+## 1. Install Dependencies
+
+```bash
+pip install pandas numpy scikit-learn flask matplotlib seaborn
+```
+
+## 2. Run a Model File
 
 Example:
 
-If MAE = 18, the model prediction is off by about 18 AQI units on average.
-
-Lower MAE indicates better accuracy.
-
----
-
-## Root Mean Squared Error (RMSE)
-
-RMSE measures the square root of the average squared prediction error.
-
-Formula:
-
-RMSE = sqrt(mean((Actual − Predicted)^2))
-
-RMSE penalizes large errors more than MAE.
-
-Lower RMSE indicates better model performance.
-
----
-
-## R² Score (Coefficient of Determination)
-
-R² measures how well the model explains the variation in AQI values.
-
-Range:
-
-0 = model explains none of the variation  
-1 = perfect prediction
-
-Example:
-
-R² = 0.87 means the model explains 87% of AQI variation.
-
-Higher values are better.
-
----
-
-## Mean Absolute Percentage Error (MAPE)
-
-MAPE measures the percentage difference between predicted and actual values.
-
-Formula:
-
-MAPE = average(|Actual − Predicted| / Actual) × 100
-
-Example:
-
-MAPE = 20% means predictions are off by about 20 percent on average.
-
-Lower values indicate better accuracy.
-
----
-
-## Median Absolute Error (P50)
-
-This is the median value of absolute prediction errors.
-
-Meaning:
-
-50% of predictions have error less than this value.
-
-This represents the typical prediction error.
-
----
-
-## P90 Absolute Error
-
-P90 error represents the value below which 90% of prediction errors fall.
-
-Example:
-
-If P90 = 40, then 90% of predictions have error less than 40 AQI units.
-
-This metric helps evaluate worst-case prediction scenarios.
-
----
-
-# Model Performance Results
-
-## Linear Regression
-
-MAE: 24.360  
-RMSE: 35.566  
-R²: 0.8151  
-MAPE: 23.01%  
-Median Absolute Error (P50): 17.43  
-P90 Absolute Error: 49.61
-
----
-
-## Support Vector Regression
-
-MAE: 20.260  
-RMSE: 28.923  
-R²: 0.8777  
-MAPE: 20.19%  
-Median Absolute Error (P50): 14.81  
-P90 Absolute Error: 42.77
-
----
-
-## Random Forest Regression
-
-MAE: 18.737  
-RMSE: 29.216  
-R²: 0.8752  
-MAPE: 19.67%  
-Median Absolute Error (P50): 12.03  
-P90 Absolute Error: 40.85
-
----
-
-# Stability Check
-
-All models produced valid predictions.
-
-NaN values: 0  
-Infinite values: 0
-
-This confirms that all trained models generate stable predictions.
-
----
-
-# Best Model Selection
-
-Best R² and RMSE  
-SVR Model (svr_model.pkl)
-
-Best MAE and typical prediction error  
-Random Forest Model (rf_model.pkl)
-
----
-
-# Final Recommendation
-
-For most real-world use cases, Random Forest is recommended because it produces lower average prediction error and stable predictions.
-
-Default prediction model used in the API:
-
-```
-rf_model.pkl
+```bash
+python backend/linear_model.py
+python backend/random_forest_model.py
+python backend/svr_model.py
 ```
 
-Alternative model when maximizing R² performance:
+Each file will:
 
+- train the model
+- print predictions
+- print R2 score
+
+## 3. Run the Backend
+
+```bash
+cd backend
+python app.py
 ```
-svr_model.pkl
+
+Backend runs on:
+
+```text
+http://127.0.0.1:5000
 ```
+
+## 4. Open the Frontend
+
+Open:
+
+- `frontend/index.html`
+
+Or serve it using a local static server if preferred.
+
+---
+
+## Strengths of This Project
+
+- simple and beginner-friendly structure
+- compares three machine learning models
+- includes both backend and frontend
+- includes analysis and visualization
+- good for college project explanation and demo
+
+---
+
+## Limitations
+
+- model files retrain at import time, which makes backend startup slower
+- only one metric is printed in model files
+- input preprocessing is basic
+- feature engineering is minimal
+- frontend visualizations are mostly presentation-oriented rather than fully data-driven
+- trend and city visuals are sample dashboard views rather than direct live aggregation from the CSV
+
+---
+
+## Suggested Future Improvements
+
+- save trained models using `joblib` or `pickle`
+- avoid retraining every time backend starts
+- add MAE, RMSE, and MSE metrics
+- use scaling for SVR
+- add city and date features if needed
+- connect visualization page to real dataset summaries
+- improve error handling and validation further
+- add backend endpoints for live trend aggregation by city and date
+
+---
+
+## Viva / Interview Style Explanation
+
+If someone asks, "How does your project work?", a good short answer is:
+
+> This project predicts AQI using three regression models: Linear Regression, Random Forest, and SVR.  
+> First, the dataset is loaded and cleaned. Then pollutant features like PM2.5, PM10, NO2, CO, and others are used to train the models.  
+> A Flask backend receives pollution values from the frontend, sends those values to all three models, and returns predicted AQI as JSON.  
+> The frontend then shows those results along with analysis and visualization pages.
+
+---
 
 ## Author
 
