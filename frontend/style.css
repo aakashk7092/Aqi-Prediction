@@ -228,48 +228,58 @@ body::before {
 /* ── Content ────────────────────────────────────────────────────────────── */
 .content-shell { display: grid; gap: 22px; }
 
+img, svg {
+  max-width: 100%;
+}
+
 .page-view { display: none; animation: reveal 280ms ease; }
 .page-view.page-active { display: block; }
 
 /* ── Hero ───────────────────────────────────────────────────────────────── */
 .hero {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(360px, 460px);
-  gap: 24px;
-  align-items: stretch;
+  align-items: end;
   padding: 32px;
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
-  background:
-    linear-gradient(135deg, rgba(255,252,245,0.9), rgba(221,237,230,0.88)),
-    linear-gradient(180deg, rgba(255,255,255,0.3), rgba(255,255,255,0.52)),
-    url("assets/air-quality-hero.svg");
-  background-position: center center, center center, center center;
-  background-repeat: no-repeat, no-repeat, no-repeat;
-  background-size: cover, cover, cover;
+  min-height: 460px;
+  background: linear-gradient(135deg, rgba(255,252,245,0.16), rgba(221,237,230,0.1));
   box-shadow: var(--shadow);
   position: relative;
   overflow: hidden;
 }
 
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(10,24,21,0.08) 0%, rgba(10,24,21,0.18) 38%, rgba(10,24,21,0.78) 100%),
+    radial-gradient(circle at top right, rgba(209,134,66,0.26), transparent 24%);
+  z-index: 0;
+}
+
 .hero::after {
   content: "";
   position: absolute;
-  inset: auto -10% -30% auto;
-  width: 320px;
-  height: 320px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(209,134,66,0.18), transparent 68%);
+  inset: auto auto 22px 28px;
+  width: 220px;
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.08), rgba(255,255,255,0.42), rgba(255,255,255,0.08));
   pointer-events: none;
+  z-index: 1;
 }
 
 .hero-copy {
   display: grid;
-  align-content: center;
-  gap: 20px;
-  max-width: 900px;
+  align-content: end;
+  gap: 16px;
+  max-width: 860px;
   position: relative;
   z-index: 1;
+  min-height: 100%;
+  padding-top: 120px;
 }
 
 .hero h2 {
@@ -295,26 +305,29 @@ body::before {
 }
 
 .hero-pill {
-  padding: 16px 18px;
-  border: 1px solid rgba(255,255,255,0.55);
+  padding: 14px 16px;
+  border: 1px solid rgba(255,255,255,0.16);
   border-radius: var(--radius-lg);
-  background: rgba(255,255,255,0.58);
-  box-shadow: var(--shadow-soft);
+  background: rgba(255,255,255,0.12);
+  box-shadow: 0 16px 30px rgba(7, 18, 16, 0.16);
+  backdrop-filter: blur(12px);
 }
 
 .hero-pill strong {
   display: block;
   font-family: "Space Grotesk", sans-serif;
   font-size: 1.02rem;
+  color: #f9fffd;
+}
+
+.hero-pill .metric-label {
+  color: rgba(241,248,245,0.72);
 }
 
 .hero-media {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  align-content: stretch;
-  align-items: stretch;
-  gap: 10px;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
 }
 
 .image-panel {
@@ -341,8 +354,12 @@ body::before {
 }
 
 .photo-card-hero {
-  min-height: 360px;
+  min-height: 100%;
   height: 100%;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: #dbe6de;
 }
 
 .photo-card-wide {
@@ -359,8 +376,10 @@ body::before {
 }
 
 .panel-image-hero {
-  object-position: center center;
+  object-position: center 44%;
   aspect-ratio: auto;
+  filter: saturate(1.02) contrast(1.02) brightness(0.82);
+  transform: scale(1.02);
 }
 
 .panel-image-road {
@@ -1088,33 +1107,57 @@ input:focus {
 
 .season-card {
   display: grid;
-  gap: 6px;
-  padding: 20px 16px;
+  gap: 8px;
+  padding: 22px 18px 18px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: rgba(255,255,255,0.6);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at top right, rgba(255,255,255,0.7), transparent 38%),
+    rgba(255,255,255,0.72);
   text-align: center;
-  transition: transform 160ms ease;
+  box-shadow: var(--shadow-soft);
+  transition: transform 160ms ease, box-shadow 160ms ease;
 }
 
-.season-card:hover { transform: translateY(-3px); }
+.season-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 34px rgba(28,49,42,0.12);
+}
 
 .season-icon {
-  width: 52px;
-  height: 52px;
-  margin: 0 auto 4px;
+  width: 74px;
+  height: 74px;
+  margin: 0 auto 6px;
   border-radius: 50%;
   display: grid;
   place-items: center;
-  font-size: 1rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  color: var(--primary-deep);
-  background: rgba(255,255,255,0.9);
-  border: 1px solid rgba(15,118,110,0.16);
+  background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(245,249,246,0.84));
+  border: 1px solid rgba(15,118,110,0.14);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.95);
 }
-.season-aqi  { font-size: 2rem; font-family: "Space Grotesk", sans-serif; font-weight: 700; line-height: 1.1; }
-.season-months { font-size: 0.82rem; color: var(--muted); }
+
+.season-icon-svg {
+  width: 48px;
+  height: 48px;
+  display: block;
+}
+
+.season-card .metric-label {
+  margin-bottom: 0;
+  letter-spacing: 0.14em;
+}
+
+.season-aqi  { font-size: 2.2rem; font-family: "Space Grotesk", sans-serif; font-weight: 700; line-height: 1.05; }
+.season-months { font-size: 0.84rem; color: var(--muted); }
+
+.season-card.tone-poor .season-icon,
+.season-card.tone-very-poor .season-icon {
+  border-color: rgba(209,134,66,0.22);
+}
+
+.season-card.tone-moderate .season-icon {
+  border-color: rgba(198,155,77,0.22);
+}
 
 /* ── NEW: AQI scale strip ───────────────────────────────────────────────── */
 .aqi-scale-strip {
@@ -1220,6 +1263,7 @@ input:focus {
   .hero, .home-grid, .analysis-grid, .prediction-grid, .visual-grid,
   .stats-grid, .chip-grid, .kpi-grid, .prediction-summary, .hero-strip { grid-template-columns: 1fr; }
   .panel-wide { grid-column: span 1; }
+  .hero { min-height: 420px; }
   .image-grid,
   .feature-banner,
   .prediction-visual-banner { grid-template-columns: 1fr; }
@@ -1227,17 +1271,84 @@ input:focus {
   .trust-grid,
   .snapshot-side { grid-template-columns: 1fr; }
   .prediction-visuals { grid-template-columns: 1fr; }
+  .hero-actions { max-width: 620px; }
+  .hero-pill { min-height: 0; }
   .season-grid { grid-template-columns: repeat(2, 1fr); }
   .aqi-scale-strip { grid-template-columns: repeat(3, 1fr); }
   .monthly-heatmap { grid-template-columns: repeat(4, 1fr); }
   .input-profile-grid { grid-template-columns: repeat(3, 1fr); }
   .radar-wrap, .donut-wrap { grid-template-columns: 1fr; }
+  .donut-svg,
+  .radar-svg { margin: 0 auto; }
   .correlation-grid .corr-card { grid-template-columns: 80px 1fr 44px; }
+}
+
+@media (max-width: 900px) {
+  .page-shell {
+    width: min(100% - 22px, 1380px);
+    gap: 18px;
+  }
+  .hero {
+    min-height: 400px;
+    padding: 24px;
+  }
+  .hero-copy {
+    max-width: none;
+    padding-top: 100px;
+  }
+  .hero-actions {
+    gap: 10px;
+  }
+  .hero-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .kpi-grid,
+  .prediction-summary,
+  .prediction-cards-grid,
+  .best-model-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .chip-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .pollutant-grid,
+  .input-profile-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .analysis-grid > .panel.panel-wide,
+  .visual-grid > .panel.panel-wide,
+  .prediction-grid > .panel.panel-wide,
+  .home-grid > .panel.panel-wide {
+    min-width: 0;
+  }
 }
 
 @media (max-width: 700px) {
   .page-shell { width: min(100% - 18px, 1380px); padding-top: 14px; }
   .sidebar, .hero, .panel { padding: 18px; }
+  .hero {
+    min-height: 380px;
+    align-items: end;
+  }
+  .hero-copy {
+    padding-top: 90px;
+    gap: 16px;
+  }
+  .hero-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .hero-actions .tab-button,
+  .form-actions .primary-button,
+  .form-actions .ghost-button {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+    min-height: 42px;
+    padding: 10px 14px;
+    font-size: 0.92rem;
+  }
   .sidebar {
     grid-template-columns: 1fr;
     border-radius: 24px;
@@ -1259,7 +1370,7 @@ input:focus {
   .nav-toggle { display: none; }
   .side-nav {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr 1fr;
     gap: 10px;
     margin-top: 0;
     padding-top: 0;
@@ -1267,19 +1378,22 @@ input:focus {
   }
   .nav-link {
     width: 100%;
-    min-height: 48px;
-    padding: 12px 10px;
+    min-height: 42px;
+    padding: 10px 10px;
     text-align: center;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.92rem;
+    font-size: 0.88rem;
     line-height: 1.2;
   }
   .sidebar-live { display: none; }
-  .prediction-visual-stats { grid-template-columns: 1fr; }
+  .kpi-grid,
+  .prediction-summary,
   .prediction-cards-grid,
-  .best-model-stats { grid-template-columns: 1fr; }
+  .best-model-stats,
+  .hero-strip { grid-template-columns: 1fr; }
+  .prediction-visual-stats { grid-template-columns: 1fr; }
   .snapshot-main,
   .snapshot-item,
   .trust-item { padding: 16px; }
@@ -1294,16 +1408,110 @@ input:focus {
   .monthly-heatmap { grid-template-columns: repeat(3, 1fr); }
   .input-profile-grid { grid-template-columns: repeat(2, 1fr); }
   .aqi-badge { min-width: 0; }
+  .chart-legend {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .legend-chip {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .result-box,
+  .placeholder-state {
+    min-height: 140px;
+  }
+  .interactive-chart-wrap {
+    overflow-x: auto;
+  }
+  .actual-predicted-svg,
+  .scatter-svg {
+    min-width: 640px;
+  }
   .photo-card,
   .photo-card-wide { min-height: 220px; }
   .photo-overlay { padding: 16px; }
 }
 
 @media (max-width: 520px) {
+  .page-shell {
+    width: min(100% - 12px, 1380px);
+    gap: 14px;
+  }
+  .sidebar, .hero, .panel {
+    border-radius: 20px;
+    padding: 16px;
+  }
+  .brand-block h1 {
+    font-size: 0.98rem;
+  }
+  .nav-link {
+    min-height: 40px;
+    font-size: 0.82rem;
+  }
+  .hero {
+    min-height: 340px;
+  }
+  .hero-copy {
+    padding-top: 70px;
+  }
+  .hero-pill,
+  .insight-card,
+  .prediction-model-card,
+  .best-model-card,
+  .best-model-stat,
+  .prediction-visual-stat,
+  .season-card,
+  .scale-cell,
+  .profile-cell,
+  .city-item,
+  .stat-card {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
   .monthly-heatmap,
   .aqi-scale-strip,
   .input-profile-grid {
     grid-template-columns: 1fr;
   }
+  .chip-grid,
+  .season-grid {
+    grid-template-columns: 1fr;
+  }
+  .pollutant-grid {
+    grid-template-columns: 1fr;
+  }
+  .donut-wrap,
+  .radar-wrap,
+  .feature-banner,
+  .prediction-visual-banner,
+  .image-grid {
+    grid-template-columns: 1fr;
+  }
   .chip-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .monthly-heatmap { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 420px) {
+  .side-nav {
+    grid-template-columns: 1fr;
+  }
+  .hero {
+    min-height: 320px;
+  }
+  .hero-copy {
+    padding-top: 64px;
+    gap: 12px;
+  }
+  .tab-button,
+  .primary-button,
+  .ghost-button {
+    min-height: 38px;
+    padding: 9px 12px;
+    font-size: 0.84rem;
+  }
+  .monthly-heatmap,
+  .chip-grid,
+  .aqi-scale-strip {
+    grid-template-columns: 1fr;
+  }
 }

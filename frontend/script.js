@@ -750,11 +750,44 @@ function renderCorrelationGrid() {
 }
 
 // ── Season cards ──────────────────────────────────────────────────────────────
+function getSeasonIconMarkup(season) {
+  const icons = {
+    "Winter": `
+      <svg viewBox="0 0 48 48" class="season-icon-svg" aria-hidden="true">
+        <circle cx="24" cy="24" r="20" fill="rgba(58,141,125,0.14)"/>
+        <path d="M24 10V38M12 17L36 31M12 31L36 17M16 12L32 36M32 12L16 36" stroke="#114b46" stroke-width="2.8" stroke-linecap="round"/>
+      </svg>`,
+    "Pre-monsoon": `
+      <svg viewBox="0 0 48 48" class="season-icon-svg" aria-hidden="true">
+        <circle cx="24" cy="24" r="20" fill="rgba(209,134,66,0.16)"/>
+        <circle cx="24" cy="24" r="8" fill="#d18642"/>
+        <path d="M24 8V13M24 35V40M8 24H13M35 24H40M13.5 13.5L17.2 17.2M30.8 30.8L34.5 34.5M34.5 13.5L30.8 17.2M17.2 30.8L13.5 34.5" stroke="#d18642" stroke-width="2.6" stroke-linecap="round"/>
+      </svg>`,
+    "Monsoon": `
+      <svg viewBox="0 0 48 48" class="season-icon-svg" aria-hidden="true">
+        <circle cx="24" cy="24" r="20" fill="rgba(15,118,110,0.14)"/>
+        <path d="M16 24C16 20.7 18.7 18 22 18C23.5 15.5 26 14 29 14C33.4 14 37 17.6 37 22C39.4 22.4 41.2 24.5 41.2 27C41.2 29.8 38.9 32 36.2 32H18C14.7 32 12 29.3 12 26C12 23.4 13.7 21.2 16 20.4" fill="none" stroke="#0f766e" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M19 34L17 38M25 34L23 40M31 34L29 38" stroke="#0f766e" stroke-width="2.6" stroke-linecap="round"/>
+      </svg>`,
+    "Post-monsoon": `
+      <svg viewBox="0 0 48 48" class="season-icon-svg" aria-hidden="true">
+        <circle cx="24" cy="24" r="20" fill="rgba(202,111,76,0.14)"/>
+        <path d="M24 12C24 18 18 20 18 26C18 30.5 20.9 34 24 36C27.1 34 30 30.5 30 26C30 20 24 18 24 12Z" fill="#ca6f4c"/>
+        <path d="M24 16C24 20.5 20.5 22.4 20.5 26.4C20.5 29.2 22.1 31.5 24 33C25.9 31.5 27.5 29.2 27.5 26.4C27.5 22.4 24 20.5 24 16Z" fill="#f1d3ad"/>
+      </svg>`,
+  };
+  return icons[season] || `
+    <svg viewBox="0 0 48 48" class="season-icon-svg" aria-hidden="true">
+      <circle cx="24" cy="24" r="20" fill="rgba(15,118,110,0.12)"/>
+      <circle cx="24" cy="24" r="8" fill="#0f766e"/>
+    </svg>`;
+}
+
 function renderSeasonGrid() {
   const container = document.getElementById("season-grid");
   container.innerHTML = seasonData.map(s => `
     <div class="season-card tone-${s.tone}">
-      <span class="season-icon">${s.icon}</span>
+      <span class="season-icon">${getSeasonIconMarkup(s.season)}</span>
       <span class="metric-label">${s.season}</span>
       <strong class="season-aqi">${s.aqi}</strong>
       <span class="season-months">${s.months}</span>
