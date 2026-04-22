@@ -1,4 +1,4 @@
-const API_URL = "https://aqi-prediction-d8il.onrender.com";
+const API_URL = "https://aqi-prediction-d8il.onrender.com/predict";
 
 // ── DOM refs ──────────────────────────────────────────────────────────────────
 const pages = {
