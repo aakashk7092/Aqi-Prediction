@@ -633,16 +633,16 @@ function updateSidebarAQI(value) {
 
 // ── Form helpers ──────────────────────────────────────────────────────────────
 function fillSampleData() {
-  document.getElementById("pm25").value    = 58.37;
-  document.getElementById("pm10").value    = 107.96;
-  document.getElementById("no").value      = 0.92;
-  document.getElementById("no2").value     = 18.22;
-  document.getElementById("nox").value     = 17.15;
-  document.getElementById("nh3").value     = 14.5;
-  document.getElementById("co").value      = 0.92;
-  document.getElementById("so2").value     = 27.64;
-  document.getElementById("o3").value      = 77.6225;
-  document.getElementById("benzene").value = 0.0;
+  document.getElementById("pm25").value    = 65;
+  document.getElementById("pm10").value    = 140;
+  document.getElementById("no").value      = 20;
+  document.getElementById("no2").value     = 40;
+  document.getElementById("nox").value     = 55;
+  document.getElementById("nh3").value     = 18;
+  document.getElementById("co").value      = 0.8;
+  document.getElementById("so2").value     = 10;
+  document.getElementById("o3").value      = 35;
+  document.getElementById("benzene").value = 2.1;
   renderInputProfile(collectFormData());
 }
 
