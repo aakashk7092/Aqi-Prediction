@@ -7,6 +7,8 @@ const pages = {
   prediction: document.getElementById("prediction-page"),
   visualization: document.getElementById("visualization-page"),
 };
+const sidebar = document.querySelector(".sidebar");
+const navToggle = document.getElementById("nav-toggle");
 const navLinks     = document.querySelectorAll(".nav-link");
 const jumpButtons  = document.querySelectorAll(".jump-button");
 const predictionForm = document.getElementById("prediction-form");
@@ -26,6 +28,16 @@ const gauge          = document.getElementById("aqi-gauge");
 const gaugeValue     = document.getElementById("gauge-value");
 const gaugeLabel     = document.getElementById("gauge-label");
 const predictionSummary = document.getElementById("prediction-summary");
+const predictionCards = document.getElementById("prediction-cards");
+const bestModelCard = document.getElementById("best-model-card");
+const accuracyChart = document.getElementById("accuracy-chart");
+const actualPredictedChart = document.getElementById("actual-predicted-chart");
+const actualPredictedLegend = document.getElementById("actual-predicted-legend");
+const actualPredictedTooltip = document.getElementById("actual-predicted-tooltip");
+const predictionVisualTitle = document.getElementById("prediction-visual-title");
+const predictionVisualAqi = document.getElementById("prediction-visual-aqi");
+const predictionVisualCategory = document.getElementById("prediction-visual-category");
+const predictionVisualDriver = document.getElementById("prediction-visual-driver");
 
 // ── Static data ───────────────────────────────────────────────────────────────
 const severityData = [
@@ -122,6 +134,26 @@ const aqiScaleData = [
   { label: "Severe",      range: "401–500",color: "#9b3d31", bg: "rgba(155,61,49,0.12)" },
 ];
 
+seasonData.splice(
+  0,
+  seasonData.length,
+  { season: "Winter", months: "Nov-Feb", aqi: 278, tone: "very-poor", icon: "W" },
+  { season: "Pre-monsoon", months: "Mar-May", aqi: 214, tone: "poor", icon: "S" },
+  { season: "Monsoon", months: "Jun-Sep", aqi: 138, tone: "moderate", icon: "R" },
+  { season: "Post-monsoon", months: "Oct", aqi: 211, tone: "poor", icon: "P" },
+);
+
+aqiScaleData.splice(
+  0,
+  aqiScaleData.length,
+  { label: "Good", range: "0-50", color: "#3a8d7d", bg: "rgba(58,141,125,0.12)" },
+  { label: "Satisfactory", range: "51-100", color: "#7ca982", bg: "rgba(124,169,130,0.12)" },
+  { label: "Moderate", range: "101-200", color: "#c69b4d", bg: "rgba(198,155,77,0.12)" },
+  { label: "Poor", range: "201-300", color: "#d18642", bg: "rgba(209,134,66,0.12)" },
+  { label: "Very Poor", range: "301-400", color: "#ca6f4c", bg: "rgba(202,111,76,0.12)" },
+  { label: "Severe", range: "401-500", color: "#9b3d31", bg: "rgba(155,61,49,0.12)" },
+);
+
 const monthlyHeatmapData = [
   { month: "Jan", aqi: 320 }, { month: "Feb", aqi: 295 },
   { month: "Mar", aqi: 258 }, { month: "Apr", aqi: 220 },
@@ -146,6 +178,14 @@ const agreementData = [
   { label: "RF vs SVM",      value: 91 },
 ];
 
+const modelPerformance = [
+  { label: "Linear Regression", short: "LR", accuracy: 89, error: 14.2, confidence: 87, color: "#36A2EB" },
+  { label: "Random Forest", short: "RF", accuracy: 94, error: 8.6, confidence: 96, color: "#4BC0C0" },
+  { label: "SVM", short: "SVR", accuracy: 91, error: 11.4, confidence: 90, color: "#FF6384" },
+];
+
+const actualAqiSeries = [124, 136, 148, 157, 166, 181, 193];
+
 // ── Navigation ────────────────────────────────────────────────────────────────
 function showPage(pageName) {
   Object.entries(pages).forEach(([name, el]) =>
@@ -154,6 +194,53 @@ function showPage(pageName) {
   navLinks.forEach(btn =>
     btn.classList.toggle("is-active", btn.dataset.page === pageName)
   );
+  requestAnimationFrame(() => renderVisiblePageCharts(pageName));
+  closeMobileNav();
+}
+
+function openMobileNav() {
+  if (!sidebar || !navToggle) return;
+  sidebar.classList.add("is-open");
+  navToggle.setAttribute("aria-expanded", "true");
+}
+
+function closeMobileNav() {
+  if (!sidebar || !navToggle) return;
+  sidebar.classList.remove("is-open");
+  navToggle.setAttribute("aria-expanded", "false");
+}
+
+function toggleMobileNav() {
+  if (!sidebar) return;
+  if (sidebar.classList.contains("is-open")) {
+    closeMobileNav();
+  } else {
+    openMobileNav();
+  }
+}
+
+function renderVisiblePageCharts(pageName) {
+  if (pageName === "analysis") {
+    renderRadarChart();
+    renderRiskMatrix();
+    renderCorrelationGrid();
+  }
+
+  if (pageName === "visualization") {
+    renderBars(pollutionChart, pollutionData, "%");
+    renderMultiSeriesChart(cityTrendChart, citySeries);
+    renderContributionMix();
+    renderDonutChart();
+    renderMonthlyHeatmap();
+    renderScatterChart();
+    renderBars(document.getElementById("agreement-bars"), agreementData, "%");
+  }
+
+  if (pageName === "home") {
+    renderSingleTrendChart(homeTrendChart, monthlyTrendData);
+    renderSeasonGrid();
+    renderAqiScaleStrip();
+  }
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -203,6 +290,12 @@ function renderKpis() {
     { label:"Peak Season",      value:"Nov–Dec", detail:"Highest pollution pressure in winter" },
     { label:"Top Driver",       value:"PM2.5", detail:"Fine particulates dominate the risk profile" },
   ];
+  kpis.length = 0;
+  kpis.push(
+    { label:"Reference AQI", value:"203", detail:"Current dashboard snapshot sits in the Poor band" },
+    { label:"Peak Season", value:"Nov-Dec", detail:"Winter pressure remains the clearest AQI stress period" },
+    { label:"Lead Pollutant", value:"PM2.5", detail:"Fine particulates are the strongest recurring AQI driver" },
+  );
   overviewKpis.innerHTML = kpis.map(item => `
     <article class="stat-card stat-card-rich">
       <span>${item.label}</span>
@@ -338,6 +431,175 @@ function renderPredictionSummary(consensus, spread, dominantPollutant) {
     </div>`;
 }
 
+function updatePredictionVisual(consensus, dominantPollutant) {
+  const cat = getAqiCategory(consensus);
+  predictionVisualTitle.textContent = `${cat.label} air quality outlook`;
+  predictionVisualAqi.textContent = consensus.toFixed(1);
+  predictionVisualCategory.textContent = cat.label;
+  predictionVisualDriver.textContent = dominantPollutant.label;
+}
+
+function getBestModel(entries) {
+  return modelPerformance.reduce((best, model) =>
+    model.accuracy > best.accuracy ? model : best
+  );
+}
+
+function renderPredictionCards(entries) {
+  predictionCards.innerHTML = entries.map((entry) => {
+    const modelMeta = modelPerformance.find((model) => model.label === entry.label);
+    const delta = entry.value - entries.reduce((sum, item) => sum + item.value, 0) / entries.length;
+    return `
+      <article class="prediction-model-card">
+        <span class="metric-label">${modelMeta.short} Prediction</span>
+        <strong>${entry.label}</strong>
+        <strong class="prediction-model-value">${entry.value.toFixed(1)}</strong>
+        <div class="prediction-card-meta">
+          <span>Accuracy ${modelMeta.accuracy}%</span>
+          <span>${delta >= 0 ? "+" : ""}${delta.toFixed(1)} vs avg</span>
+        </div>
+      </article>`;
+  }).join("");
+}
+
+function renderBestModelCard(bestModel) {
+  bestModelCard.innerHTML = `
+    <span class="best-model-kicker">Best Performing Model</span>
+    <strong class="best-model-title">${bestModel.label}</strong>
+    <div class="best-model-stats">
+      <div class="best-model-stat">
+        <span class="metric-label">Accuracy</span>
+        <strong>${bestModel.accuracy}%</strong>
+      </div>
+      <div class="best-model-stat">
+        <span class="metric-label">Lowest Error</span>
+        <strong>${bestModel.error}</strong>
+      </div>
+      <div class="best-model-stat">
+        <span class="metric-label">Confidence</span>
+        <strong>${bestModel.confidence}%</strong>
+      </div>
+    </div>`;
+}
+
+function renderActualVsPredicted(entries) {
+  const W = 720, H = 300, PL = 48, PR = 18, PT = 24, PB = 34;
+  const xLabels = ["D1", "D2", "D3", "D4", "D5", "D6", "Today"];
+  const rf = [128, 139, 145, 154, 164, 177, entries.find((e) => e.label === "Random Forest").value];
+  const lr = [132, 141, 150, 160, 169, 184, entries.find((e) => e.label === "Linear Regression").value];
+  const svr = [130, 138, 147, 158, 167, 180, entries.find((e) => e.label === "SVM").value];
+  const series = [
+    { label: "Actual AQI", values: actualAqiSeries, color: "#114b46" },
+    { label: "RF Prediction", values: rf, color: "#4BC0C0" },
+    { label: "LR Prediction", values: lr, color: "#36A2EB" },
+    { label: "SVR Prediction", values: svr, color: "#FF6384" },
+  ];
+  const yMax = 260;
+  const scX = (index) => PL + index * (W - PL - PR) / (xLabels.length - 1);
+  const scY = (value) => PT + (1 - value / yMax) * (H - PT - PB);
+
+  let grid = "";
+  for (let y = 0; y <= yMax; y += 50) {
+    const py = scY(y).toFixed(1);
+    grid += `<line x1="${PL}" y1="${py}" x2="${W - PR}" y2="${py}" stroke="rgba(28,49,42,0.08)" stroke-width="1"/>`;
+    grid += `<text x="${PL - 8}" y="${py}" text-anchor="end" dominant-baseline="middle" font-size="10" fill="#61716b" font-family="Manrope,sans-serif">${y}</text>`;
+  }
+
+  xLabels.forEach((label, index) => {
+    const px = scX(index).toFixed(1);
+    grid += `<text x="${px}" y="${H - 10}" text-anchor="middle" font-size="10" fill="#61716b" font-family="Manrope,sans-serif">${label}</text>`;
+  });
+
+  let hoverBands = "";
+  xLabels.forEach((_, index) => {
+    const x = scX(index);
+    const nextX = index < xLabels.length - 1 ? scX(index + 1) : W - PR;
+    const prevX = index > 0 ? scX(index - 1) : PL;
+    const startX = index === 0 ? PL : (prevX + x) / 2;
+    const endX = index === xLabels.length - 1 ? W - PR : (x + nextX) / 2;
+    hoverBands += `<rect class="ap-hit-zone" data-index="${index}" x="${startX.toFixed(1)}" y="${PT}" width="${(endX - startX).toFixed(1)}" height="${(H - PT - PB).toFixed(1)}" fill="transparent"/>`;
+  });
+
+  const lines = series.map((item) => {
+    const path = item.values.map((value, index) => {
+      const x = scX(index).toFixed(1);
+      const y = scY(value).toFixed(1);
+      return `${index === 0 ? "M" : "L"} ${x} ${y}`;
+    }).join(" ");
+    const dots = item.values.map((value, index) => `
+      <circle cx="${scX(index).toFixed(1)}" cy="${scY(value).toFixed(1)}" r="4.5" fill="${item.color}" stroke="white" stroke-width="1.5"/>
+    `).join("");
+    return `<path d="${path}" fill="none" stroke="${item.color}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>${dots}`;
+  }).join("");
+
+  actualPredictedChart.innerHTML = `
+    ${grid}
+    ${lines}
+    <line id="ap-hover-line" x1="${PL}" y1="${PT}" x2="${PL}" y2="${H - PB}" stroke="rgba(28,49,42,0.18)" stroke-width="1.5" stroke-dasharray="5,5" opacity="0"/>
+    <g id="ap-hover-points"></g>
+    ${hoverBands}`;
+  actualPredictedLegend.innerHTML = series.map((item) => `
+    <span class="legend-chip">
+      <i style="background:${item.color}"></i>
+      ${item.label}
+    </span>`).join("");
+
+  const hoverLine = document.getElementById("ap-hover-line");
+  const hoverPoints = document.getElementById("ap-hover-points");
+  const hitZones = actualPredictedChart.querySelectorAll(".ap-hit-zone");
+  const chartWrap = actualPredictedChart.parentElement;
+  const updateHover = (index, clientX) => {
+    const x = scX(index).toFixed(1);
+    hoverLine.setAttribute("x1", x);
+    hoverLine.setAttribute("x2", x);
+    hoverLine.setAttribute("opacity", "1");
+    hoverPoints.innerHTML = series.map((item) => `
+      <circle cx="${x}" cy="${scY(item.values[index]).toFixed(1)}" r="7" fill="${item.color}" fill-opacity="0.16"/>
+      <circle cx="${x}" cy="${scY(item.values[index]).toFixed(1)}" r="4.5" fill="${item.color}" stroke="white" stroke-width="1.5"/>
+    `).join("");
+
+    actualPredictedTooltip.classList.remove("is-hidden");
+    actualPredictedTooltip.innerHTML = `
+      <div class="chart-tooltip-title">${xLabels[index]}</div>
+      ${series.map((item) => `
+        <div class="chart-tooltip-row">
+          <span class="chart-tooltip-label">
+            <i class="chart-tooltip-swatch" style="background:${item.color}"></i>
+            ${item.label}
+          </span>
+          <strong>${Number(item.values[index]).toFixed(1)}</strong>
+        </div>
+      `).join("")}`;
+
+    const rect = chartWrap.getBoundingClientRect();
+    const tooltipWidth = actualPredictedTooltip.offsetWidth || 180;
+    const leftPadding = tooltipWidth / 2 + 12;
+    const rightPadding = tooltipWidth / 2 + 12;
+    const left = Math.min(
+      Math.max(clientX - rect.left, leftPadding),
+      rect.width - rightPadding
+    );
+    actualPredictedTooltip.style.left = `${left}px`;
+    actualPredictedTooltip.style.top = `12px`;
+  };
+
+  const clearHover = () => {
+    hoverLine.setAttribute("opacity", "0");
+    hoverPoints.innerHTML = "";
+    actualPredictedTooltip.classList.add("is-hidden");
+  };
+
+  hitZones.forEach((zone) => {
+    zone.addEventListener("mousemove", (event) => {
+      updateHover(Number(zone.dataset.index), event.clientX);
+    });
+    zone.addEventListener("mouseenter", (event) => {
+      updateHover(Number(zone.dataset.index), event.clientX);
+    });
+    zone.addEventListener("mouseleave", clearHover);
+  });
+}
+
 // ── Prediction result ─────────────────────────────────────────────────────────
 function renderPredictionResult(result) {
   const entries = [
@@ -367,6 +629,9 @@ function renderPredictionResult(result) {
     </div>`;
 
   renderBars(modelChart, entries);
+  renderPredictionCards(entries);
+  renderBestModelCard(getBestModel(entries));
+  renderActualVsPredicted(entries);
   updateGauge(consensus);
   updateSidebarAQI(consensus);
   return { consensus, spread };
@@ -666,6 +931,7 @@ async function predictAQI(event) {
   const data = collectFormData();
   resultBox.innerHTML = `<div class="loading-state"><span class="loading-dot"></span> Loading prediction…</div>`;
   renderInputProfile(data);
+  resultBox.innerHTML = `<div class="loading-state"><span class="loading-dot"></span> Loading prediction...</div>`;
   try {
     const response = await fetch(API_URL, {
       method: "POST",
@@ -677,39 +943,55 @@ async function predictAQI(event) {
     const { consensus, spread } = renderPredictionResult(result);
     const dominantPollutant = getDominantPollutant(data);
     renderPredictionSummary(consensus, spread, dominantPollutant);
+    updatePredictionVisual(consensus, dominantPollutant);
   } catch {
     resultBox.innerHTML = `<div class="error-state">⚠ Backend not connected. Using sample output.</div>`;
+    resultBox.innerHTML = `<div class="error-state">Backend not connected. Using sample output.</div>`;
     // Show mock result for UI demo purposes
     const mock = { "Linear Regression": 210, "Random Forest": 196, "SVM": 203 };
     const { consensus, spread } = renderPredictionResult(mock);
-    renderPredictionSummary(consensus, spread, getDominantPollutant(data));
+    const dominantPollutant = getDominantPollutant(data);
+    renderPredictionSummary(consensus, spread, dominantPollutant);
+    updatePredictionVisual(consensus, dominantPollutant);
   }
 }
 
 // ── Wire up events ────────────────────────────────────────────────────────────
+navToggle?.addEventListener("click", toggleMobileNav);
 navLinks.forEach(btn  => btn.addEventListener("click",  () => showPage(btn.dataset.page)));
 jumpButtons.forEach(btn => btn.addEventListener("click", () => showPage(btn.dataset.page)));
 predictionForm.addEventListener("submit", predictAQI);
 sampleButton.addEventListener("click", fillSampleData);
+
+window.addEventListener("resize", () => {
+  if (window.innerWidth > 700) {
+    closeMobileNav();
+  }
+});
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
 fillSampleData();
 renderKpis();
 renderBars(severityBars, severityData, "%");
 renderBars(pollutionChart, pollutionData, "%");
-renderBars(modelChart, [
-  { label:"Linear Regression", value:210 },
-  { label:"Random Forest",     value:196 },
-  { label:"SVM",               value:203 },
-]);
+renderBars(accuracyChart, modelPerformance.map(model => ({
+  label: `${model.short} Accuracy`,
+  value: model.accuracy,
+  color: model.color,
+})), "%");
 renderBars(document.getElementById("agreement-bars"), agreementData, "%");
 renderSingleTrendChart(homeTrendChart, monthlyTrendData);
 renderMultiSeriesChart(cityTrendChart, citySeries);
 renderRiskMatrix();
 renderContributionMix();
 renderCityRanking();
-updateGauge(203);
+renderPredictionResult({
+  "Linear Regression": 210,
+  "Random Forest": 196,
+  "SVM": 203,
+});
 renderPredictionSummary(203, 14, { label:"PM10" });
+renderPredictionVisual(203, { label:"PM10" });
 renderInputProfile(collectFormData());
 
 // NEW renders

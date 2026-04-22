@@ -36,13 +36,12 @@ def add_cors_headers(response):
 
 @app.route("/", methods=["GET"])
 def home():
-    return jsonify(
-        {
-            "message": "AQI Prediction Backend is running",
-            "features": FEATURE_NAMES,
-            "models": ["Linear Regression", "Random Forest", "SVM"],
-        }
-    )
+    return "Backend Running"
+
+
+@app.route("/health", methods=["GET"])
+def health():
+    return jsonify({"status": "ok"}), 200
 
 
 @app.route("/predict", methods=["POST", "OPTIONS"])

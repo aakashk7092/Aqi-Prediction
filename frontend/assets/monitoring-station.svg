@@ -1,0 +1,33 @@
+<svg width="1200" height="800" viewBox="0 0 1200 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="800" fill="#E5EFEA"/>
+  <rect width="1200" height="800" fill="url(#sky)"/>
+  <rect y="594" width="1200" height="206" fill="url(#ground)"/>
+  <path d="M174 638C319 614 473 612 633 640C794 668 956 671 1089 645" stroke="#8FB4A1" stroke-width="10" stroke-linecap="round"/>
+  <rect x="584" y="202" width="32" height="360" rx="16" fill="#335752"/>
+  <rect x="518" y="314" width="164" height="20" rx="10" fill="#335752"/>
+  <rect x="544" y="272" width="112" height="18" rx="9" fill="#4C756C"/>
+  <rect x="536" y="362" width="128" height="18" rx="9" fill="#4C756C"/>
+  <circle cx="600" cy="247" r="42" stroke="#D18642" stroke-width="10"/>
+  <circle cx="600" cy="247" r="10" fill="#D18642"/>
+  <circle cx="518" cy="324" r="28" stroke="#0F766E" stroke-width="10"/>
+  <circle cx="518" cy="324" r="8" fill="#0F766E"/>
+  <circle cx="682" cy="324" r="28" stroke="#0F766E" stroke-width="10"/>
+  <circle cx="682" cy="324" r="8" fill="#0F766E"/>
+  <path d="M600 562L559 634H641L600 562Z" fill="#315652"/>
+  <circle cx="885" cy="156" r="98" fill="#F0C58A" fill-opacity="0.5"/>
+  <g opacity="0.2">
+    <circle cx="264" cy="173" r="88" fill="#FFFFFF"/>
+    <circle cx="331" cy="194" r="72" fill="#FFFFFF"/>
+    <circle cx="389" cy="171" r="61" fill="#FFFFFF"/>
+  </g>
+  <defs>
+    <linearGradient id="sky" x1="600" y1="0" x2="600" y2="800" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F7F1E8"/>
+      <stop offset="1" stop-color="#DDEAE3"/>
+    </linearGradient>
+    <linearGradient id="ground" x1="600" y1="594" x2="600" y2="800" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#C4D8CC"/>
+      <stop offset="1" stop-color="#A7C0B3"/>
+    </linearGradient>
+  </defs>
+</svg>
