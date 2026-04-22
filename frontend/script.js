@@ -219,27 +219,35 @@ function toggleMobileNav() {
   }
 }
 
+function safeRender(renderFn) {
+  try {
+    renderFn();
+  } catch (error) {
+    console.error("Render failed:", error);
+  }
+}
+
 function renderVisiblePageCharts(pageName) {
   if (pageName === "analysis") {
-    renderRadarChart();
-    renderRiskMatrix();
-    renderCorrelationGrid();
+    safeRender(() => renderRadarChart());
+    safeRender(() => renderRiskMatrix());
+    safeRender(() => renderCorrelationGrid());
   }
 
   if (pageName === "visualization") {
-    renderBars(pollutionChart, pollutionData, "%");
-    renderMultiSeriesChart(cityTrendChart, citySeries);
-    renderContributionMix();
-    renderDonutChart();
-    renderMonthlyHeatmap();
-    renderScatterChart();
-    renderBars(document.getElementById("agreement-bars"), agreementData, "%");
+    safeRender(() => renderBars(pollutionChart, pollutionData, "%"));
+    safeRender(() => renderMultiSeriesChart(cityTrendChart, citySeries));
+    safeRender(() => renderContributionMix());
+    safeRender(() => renderDonutChart());
+    safeRender(() => renderMonthlyHeatmap());
+    safeRender(() => renderScatterChart());
+    safeRender(() => renderBars(document.getElementById("agreement-bars"), agreementData, "%"));
   }
 
   if (pageName === "home") {
-    renderSingleTrendChart(homeTrendChart, monthlyTrendData);
-    renderSeasonGrid();
-    renderAqiScaleStrip();
+    safeRender(() => renderSingleTrendChart(homeTrendChart, monthlyTrendData));
+    safeRender(() => renderSeasonGrid());
+    safeRender(() => renderAqiScaleStrip());
   }
 }
 
@@ -991,18 +999,19 @@ renderPredictionResult({
   "SVM": 203,
 });
 renderPredictionSummary(203, 14, { label:"PM10" });
-renderPredictionVisual(203, { label:"PM10" });
+updatePredictionVisual(203, { label:"PM10" });
 renderInputProfile(collectFormData());
 
 // NEW renders
-renderRadarChart();
-renderCorrelationGrid();
-renderSeasonGrid();
-renderAqiScaleStrip();
-renderDonutChart();
-renderMonthlyHeatmap();
-renderScatterChart();
-renderSidebarSparkline();
+safeRender(() => renderRadarChart());
+safeRender(() => renderCorrelationGrid());
+safeRender(() => renderSeasonGrid());
+safeRender(() => renderAqiScaleStrip());
+safeRender(() => renderDonutChart());
+safeRender(() => renderMonthlyHeatmap());
+safeRender(() => renderScatterChart());
+safeRender(() => renderSidebarSparkline());
+renderVisiblePageCharts("home");
 
 const peak = monthlyTrendData.reduce((p,c) => c.value>p.value ? c : p);
 homeTrendPeak.textContent = `${peak.value} in ${peak.label}`;
