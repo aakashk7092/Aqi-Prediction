@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AQI Monitoring Dashboard</title>
+  <title>AQI Monitoring</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
@@ -14,14 +14,14 @@
     <aside class="sidebar">
       <div class="sidebar-top">
         <div class="brand-block">
-          <h1>AQI Monitoring Dashboard</h1>
+          <h1>AQI Monitoring</h1>
         </div>
         <button
           class="nav-toggle"
           id="nav-toggle"
           type="button"
           aria-expanded="false"
-          aria-controls="side-nav"
+          aria-controls="mobile-nav-panel"
           aria-label="Toggle navigation"
         >
           <span></span>
@@ -30,21 +30,31 @@
         </button>
       </div>
 
-      <nav class="side-nav" id="side-nav">
-        <button class="nav-link is-active" data-page="home">Home</button>
-        <button class="nav-link" data-page="analysis">Pollution Analysis</button>
-        <button class="nav-link" data-page="prediction">Prediction</button>
-        <button class="nav-link" data-page="visualization">Visualization</button>
-      </nav>
+      <button
+        class="sidebar-backdrop"
+        id="sidebar-backdrop"
+        type="button"
+        aria-label="Close navigation"
+        tabindex="-1"
+      ></button>
 
-      <div class="sidebar-live">
-        <span class="sidebar-label">Live AQI Pulse</span>
-        <div class="pulse-row">
-          <span class="pulse-dot"></span>
-          <span id="sidebar-aqi-val">203</span>
-          <span class="aqi-badge poor" id="sidebar-aqi-badge">Poor</span>
+      <div class="mobile-nav-panel" id="mobile-nav-panel" aria-hidden="true">
+        <nav class="side-nav" id="side-nav">
+          <button class="nav-link is-active" data-page="home">Home</button>
+          <button class="nav-link" data-page="analysis">Pollution Analysis</button>
+          <button class="nav-link" data-page="prediction">Prediction</button>
+          <button class="nav-link" data-page="visualization">Visualization</button>
+        </nav>
+
+        <div class="sidebar-live">
+          <span class="sidebar-label">Live AQI Pulse</span>
+          <div class="pulse-row">
+            <span class="pulse-dot"></span>
+            <span id="sidebar-aqi-val">203</span>
+            <span class="aqi-badge poor" id="sidebar-aqi-badge">Poor</span>
+          </div>
+          <div class="mini-sparkline" id="sidebar-sparkline"></div>
         </div>
-        <div class="mini-sparkline" id="sidebar-sparkline"></div>
       </div>
     </aside>
 
@@ -128,7 +138,7 @@
 
           <article class="panel">
             <div class="panel-header">
-              <h3>How This Dashboard Helps</h3>
+              <h3>How This Helps</h3>
             </div>
             <div class="stack-list">
               <div class="city-item"><span>Turn pollutant readings into AQI estimates using three models</span></div>
@@ -438,7 +448,7 @@
       <section id="visualization-page" class="page-view">
         <div class="section-heading">
           <div>
-            <h2>Visualization Dashboard</h2>
+            <h2>Visualization</h2>
           </div>
         </div>
 
@@ -510,6 +520,13 @@
 
           <article class="panel panel-wide">
             <div class="panel-header">
+              <h3>City Season Comparison Matrix</h3>
+            </div>
+            <div id="city-season-matrix" class="city-season-matrix"></div>
+          </article>
+
+          <article class="panel panel-wide">
+            <div class="panel-header">
               <h3>Monthly AQI Heatmap - Delhi</h3>
             </div>
             <div id="monthly-heatmap" class="monthly-heatmap"></div>
@@ -519,7 +536,14 @@
             <div class="panel-header">
               <h3>PM2.5 vs AQI Scatter Plot</h3>
             </div>
-            <svg id="scatter-chart" viewBox="0 0 720 300" class="chart-svg scatter-svg"></svg>
+            <div id="scatter-chart" class="line-chart"></div>
+          </article>
+
+          <article class="panel panel-wide">
+            <div class="panel-header">
+              <h3>City AQI Spread And Recovery</h3>
+            </div>
+            <div id="city-comparison-bars" class="comparison-bars"></div>
           </article>
 
           <article class="panel">
@@ -543,7 +567,7 @@
             <div class="stats-grid">
               <article class="stat-card"><span>Analysis</span><strong>Inputs Explained</strong></article>
               <article class="stat-card"><span>Prediction</span><strong>3 Models</strong></article>
-              <article class="stat-card"><span>Visualization</span><strong>Dashboard View</strong></article>
+              <article class="stat-card"><span>Visualization</span><strong>Visual View</strong></article>
             </div>
           </article>
         </div>

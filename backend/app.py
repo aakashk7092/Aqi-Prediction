@@ -1,15 +1,5 @@
 from flask import Flask, jsonify, request
 
-# import trained models
-try:
-    from .linear_model import model as linear_model
-    from .random_forest_model import model as rf_model
-    from .svr_model import model as svm_model
-except ImportError:
-    from linear_model import model as linear_model
-    from random_forest_model import model as rf_model
-    from svr_model import model as svm_model
-
 app = Flask(__name__)
 
 FEATURE_NAMES = [
@@ -24,6 +14,16 @@ FEATURE_NAMES = [
     "o3",
     "benzene",
 ]
+
+# import trained models
+try:
+    from .linear_model import model as linear_model
+    from .random_forest_model import model as rf_model
+    from .svr_model import model as svm_model
+except ImportError:
+    from linear_model import model as linear_model
+    from random_forest_model import model as rf_model
+    from svr_model import model as svm_model
 
 
 @app.after_request

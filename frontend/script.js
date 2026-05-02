@@ -7,8 +7,11 @@ const pages = {
   prediction: document.getElementById("prediction-page"),
   visualization: document.getElementById("visualization-page"),
 };
+const mobileNavBreakpoint = 700;
 const sidebar = document.querySelector(".sidebar");
 const navToggle = document.getElementById("nav-toggle");
+const sidebarBackdrop = document.getElementById("sidebar-backdrop");
+const mobileNavPanel = document.getElementById("mobile-nav-panel");
 const navLinks     = document.querySelectorAll(".nav-link");
 const jumpButtons  = document.querySelectorAll(".jump-button");
 const predictionForm = document.getElementById("prediction-form");
@@ -21,6 +24,8 @@ const overviewKpis   = document.getElementById("overview-kpis");
 const homeTrendPeak  = document.getElementById("home-trend-peak");
 const homeTrendChart = document.getElementById("home-trend-chart");
 const cityTrendChart = document.getElementById("city-trend-chart");
+const citySeasonMatrix = document.getElementById("city-season-matrix");
+const cityComparisonBars = document.getElementById("city-comparison-bars");
 const riskMatrix     = document.getElementById("risk-matrix");
 const pollutantMix   = document.getElementById("pollutant-mix");
 const cityRanking    = document.getElementById("city-ranking");
@@ -163,6 +168,13 @@ const monthlyHeatmapData = [
   { month: "Nov", aqi: 310 }, { month: "Dec", aqi: 336 },
 ];
 
+const seasonBuckets = [
+  { label: "Winter", months: [0, 1, 10, 11] },
+  { label: "Pre-monsoon", months: [2, 3, 4] },
+  { label: "Monsoon", months: [5, 6, 7, 8] },
+  { label: "Post-monsoon", months: [9] },
+];
+
 const scatterPoints = [
   {pm25:20,aqi:62},{pm25:35,aqi:98},{pm25:48,aqi:132},{pm25:55,aqi:158},
   {pm25:62,aqi:178},{pm25:70,aqi:198},{pm25:78,aqi:218},{pm25:85,aqi:235},
@@ -198,20 +210,28 @@ function showPage(pageName) {
   closeMobileNav();
 }
 
+function isMobileNavViewport() {
+  return window.innerWidth <= mobileNavBreakpoint;
+}
+
 function openMobileNav() {
-  if (!sidebar || !navToggle) return;
+  if (!sidebar || !navToggle || !isMobileNavViewport()) return;
   sidebar.classList.add("is-open");
   navToggle.setAttribute("aria-expanded", "true");
+  mobileNavPanel?.setAttribute("aria-hidden", "false");
+  document.body.classList.add("nav-open");
 }
 
 function closeMobileNav() {
   if (!sidebar || !navToggle) return;
   sidebar.classList.remove("is-open");
   navToggle.setAttribute("aria-expanded", "false");
+  mobileNavPanel?.setAttribute("aria-hidden", isMobileNavViewport() ? "true" : "false");
+  document.body.classList.remove("nav-open");
 }
 
 function toggleMobileNav() {
-  if (!sidebar) return;
+  if (!sidebar || !isMobileNavViewport()) return;
   if (sidebar.classList.contains("is-open")) {
     closeMobileNav();
   } else {
@@ -237,10 +257,12 @@ function renderVisiblePageCharts(pageName) {
   if (pageName === "visualization") {
     safeRender(() => renderBars(pollutionChart, pollutionData, "%"));
     safeRender(() => renderMultiSeriesChart(cityTrendChart, citySeries));
+    safeRender(() => renderCitySeasonMatrix());
     safeRender(() => renderContributionMix());
     safeRender(() => renderDonutChart());
     safeRender(() => renderMonthlyHeatmap());
     safeRender(() => renderScatterChart());
+    safeRender(() => renderCityComparisonBars());
     safeRender(() => renderBars(document.getElementById("agreement-bars"), agreementData, "%"));
   }
 
@@ -328,6 +350,14 @@ function buildAreaPath(values, width, height, padding) {
   return `${top} L ${width-padding} ${height-padding} L ${padding} ${height-padding} Z`;
 }
 
+function average(values) {
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+function clamp(value, min, max) {
+  return Math.min(Math.max(value, min), max);
+}
+
 function renderSingleTrendChart(container, data) {
   const W=760, H=260, P=28;
   const values = data.map(d => d.value);
@@ -352,25 +382,141 @@ function renderSingleTrendChart(container, data) {
 }
 
 function renderMultiSeriesChart(container, series) {
-  const W=760, H=280, P=28;
-  const all = series.flatMap(s => s.values);
-  const max = Math.max(...all), min = Math.min(...all), range = Math.max(max-min,1);
-  const lines = series.map(s => {
-    const path = s.values.map((v,i) => {
-      const x = P + i*(W-P*2)/(s.values.length-1);
-      const y = H - P - ((v-min)/range)*(H-P*2);
-      return `${i===0?"M":"L"} ${x.toFixed(2)} ${y.toFixed(2)}`;
+  const W = 820, H = 360, PL = 58, PR = 18, PT = 22, PB = 42;
+  const labels = monthlyTrendData.map((d) => d.label);
+  const all = series.flatMap((s) => s.values);
+  const max = Math.max(...all);
+  const min = Math.min(...all);
+  const paddedMax = Math.ceil((max + 20) / 20) * 20;
+  const paddedMin = Math.max(0, Math.floor((min - 20) / 20) * 20);
+  const range = Math.max(paddedMax - paddedMin, 1);
+  const scX = (index) => PL + index * (W - PL - PR) / (labels.length - 1);
+  const scY = (value) => PT + (1 - (value - paddedMin) / range) * (H - PT - PB);
+
+  let grid = "";
+  for (let y = paddedMin; y <= paddedMax; y += 40) {
+    const py = scY(y).toFixed(1);
+    grid += `<line x1="${PL}" y1="${py}" x2="${W - PR}" y2="${py}" class="chart-grid-line"/>`;
+    grid += `<text x="${PL - 10}" y="${py}" text-anchor="end" dominant-baseline="middle" class="chart-axis-text">${y}</text>`;
+  }
+
+  labels.forEach((label, index) => {
+    const px = scX(index).toFixed(1);
+    grid += `<line x1="${px}" y1="${PT}" x2="${px}" y2="${H - PB}" class="chart-grid-line chart-grid-line-vertical"/>`;
+    grid += `<text x="${px}" y="${H - 12}" text-anchor="middle" class="chart-axis-text">${label}</text>`;
+  });
+
+  const defs = `
+    <defs>
+      ${series.map((item, index) => `
+        <linearGradient id="city-area-${index}" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="${item.color}" stop-opacity="0.24"/>
+          <stop offset="100%" stop-color="${item.color}" stop-opacity="0"/>
+        </linearGradient>`).join("")}
+    </defs>`;
+
+  const seriesMarkup = series.map((item, index) => {
+    const path = item.values.map((value, pointIndex) => {
+      const x = scX(pointIndex).toFixed(1);
+      const y = scY(value).toFixed(1);
+      return `${pointIndex === 0 ? "M" : "L"} ${x} ${y}`;
     }).join(" ");
-    return `<path d="${path}" fill="none" stroke="${s.color}" stroke-width="4" stroke-linecap="round"/>`;
+    const areaPath = `${path} L ${scX(labels.length - 1).toFixed(1)} ${(H - PB).toFixed(1)} L ${scX(0).toFixed(1)} ${(H - PB).toFixed(1)} Z`;
+    const points = item.values.map((value, pointIndex) => `
+      <circle cx="${scX(pointIndex).toFixed(1)}" cy="${scY(value).toFixed(1)}" r="5.5" fill="${item.color}" stroke="white" stroke-width="2"/>
+    `).join("");
+    return `
+      <g class="series-group">
+        <path d="${areaPath}" fill="url(#city-area-${index})"></path>
+        <path d="${path}" fill="none" stroke="${item.color}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"></path>
+        ${points}
+      </g>`;
   }).join("");
+
+  const hoverBands = labels.map((_, index) => {
+    const x = scX(index);
+    const nextX = index < labels.length - 1 ? scX(index + 1) : W - PR;
+    const prevX = index > 0 ? scX(index - 1) : PL;
+    const startX = index === 0 ? PL : (prevX + x) / 2;
+    const endX = index === labels.length - 1 ? W - PR : (x + nextX) / 2;
+    return `<rect class="chart-hit-zone" data-index="${index}" x="${startX.toFixed(1)}" y="${PT}" width="${(endX - startX).toFixed(1)}" height="${(H - PT - PB).toFixed(1)}" fill="transparent"/>`;
+  }).join("");
+
+  const summaryMarkup = series.map((item) => {
+    const peak = Math.max(...item.values);
+    const trough = Math.min(...item.values);
+    const annualAvg = average(item.values);
+    return `
+      <article class="chart-stat-card">
+        <span class="metric-label">${item.name}</span>
+        <strong>${annualAvg.toFixed(0)} AQI avg</strong>
+        <p>Peak ${peak} and low ${trough} across the year.</p>
+      </article>`;
+  }).join("");
+
   container.innerHTML = `
-    <svg viewBox="0 0 ${W} ${H}" class="chart-svg">
-      ${lines}
-    </svg>
-    <div class="chart-legend">
-      ${series.map(s=>`<span class="legend-chip"><i style="background:${s.color}"></i>${s.name}</span>`).join("")}
+    <div class="interactive-chart-wrap interactive-line-chart-wrap">
+      <svg viewBox="0 0 ${W} ${H}" class="chart-svg chart-svg-detailed city-trend-svg">
+        ${defs}
+        ${grid}
+        ${seriesMarkup}
+        <line id="city-trend-hover-line" x1="${PL}" y1="${PT}" x2="${PL}" y2="${H - PB}" class="chart-hover-line" opacity="0"></line>
+        <g id="city-trend-hover-points"></g>
+        ${hoverBands}
+      </svg>
+      <div id="city-trend-tooltip" class="chart-tooltip is-hidden"></div>
     </div>
-    <div class="axis-labels">${monthlyTrendData.map(d=>`<span>${d.label}</span>`).join("")}</div>`;
+    <div class="chart-legend">
+      ${series.map((item) => `<span class="legend-chip"><i style="background:${item.color}"></i>${item.name}</span>`).join("")}
+    </div>
+    <div class="chart-stats-grid">${summaryMarkup}</div>`;
+
+  const chartWrap = container.querySelector(".interactive-chart-wrap");
+  const tooltip = document.getElementById("city-trend-tooltip");
+  const hoverLine = document.getElementById("city-trend-hover-line");
+  const hoverPoints = document.getElementById("city-trend-hover-points");
+  const hitZones = container.querySelectorAll(".chart-hit-zone");
+
+  const updateHover = (index, clientX) => {
+    const x = scX(index).toFixed(1);
+    hoverLine.setAttribute("x1", x);
+    hoverLine.setAttribute("x2", x);
+    hoverLine.setAttribute("opacity", "1");
+    hoverPoints.innerHTML = series.map((item) => `
+      <circle cx="${x}" cy="${scY(item.values[index]).toFixed(1)}" r="9" fill="${item.color}" fill-opacity="0.16"/>
+      <circle cx="${x}" cy="${scY(item.values[index]).toFixed(1)}" r="5.5" fill="${item.color}" stroke="white" stroke-width="2"/>
+    `).join("");
+
+    tooltip.classList.remove("is-hidden");
+    tooltip.innerHTML = `
+      <div class="chart-tooltip-title">${labels[index]}</div>
+      ${series.map((item) => `
+        <div class="chart-tooltip-row">
+          <span class="chart-tooltip-label">
+            <i class="chart-tooltip-swatch" style="background:${item.color}"></i>
+            ${item.name}
+          </span>
+          <strong>${item.values[index]}</strong>
+        </div>`).join("")}`;
+
+    const rect = chartWrap.getBoundingClientRect();
+    const tooltipWidth = tooltip.offsetWidth || 190;
+    const left = clamp(clientX - rect.left, tooltipWidth / 2 + 12, rect.width - tooltipWidth / 2 - 12);
+    tooltip.style.left = `${left}px`;
+    tooltip.style.top = `12px`;
+  };
+
+  const clearHover = () => {
+    hoverLine.setAttribute("opacity", "0");
+    hoverPoints.innerHTML = "";
+    tooltip.classList.add("is-hidden");
+  };
+
+  hitZones.forEach((zone) => {
+    zone.addEventListener("mousemove", (event) => updateHover(Number(zone.dataset.index), event.clientX));
+    zone.addEventListener("mouseenter", (event) => updateHover(Number(zone.dataset.index), event.clientX));
+    zone.addEventListener("mouseleave", clearHover);
+  });
 }
 
 // ── Risk heatmap ──────────────────────────────────────────────────────────────
@@ -619,6 +765,13 @@ function renderPredictionResult(result) {
   const consensus = values.reduce((s,v) => s+v, 0) / values.length;
   const spread    = Math.max(...values) - Math.min(...values);
   const cat       = getAqiCategory(consensus);
+  const maxValue  = Math.max(...values, 1);
+  const minValue  = Math.min(...values);
+  const colors = {
+    "Linear Regression": "#36A2EB",
+    "Random Forest": "#4BC0C0",
+    "SVM": "#FF6384",
+  };
 
   resultBox.innerHTML = `
     <div class="result-summary">
@@ -628,12 +781,24 @@ function renderPredictionResult(result) {
       </div>
       <span class="aqi-badge ${cat.tone}">${cat.label}</span>
     </div>
-    <div class="stack-list">
-      ${entries.map(e=>`
-        <div class="city-item">
-          <span>${e.label}</span>
-          <strong>${e.value.toFixed(2)}</strong>
+    <div class="forecast-mini-chart">
+      ${entries.map((entry) => `
+        <div class="forecast-bar-item">
+          <div class="forecast-bar-meta">
+            <span>${entry.label}</span>
+            <strong>${entry.value.toFixed(2)}</strong>
+          </div>
+          <div class="forecast-bar-track">
+            <div
+              class="forecast-bar-fill"
+              style="--target-width:${(entry.value / maxValue) * 100}%;--bar-color:${colors[entry.label]}"
+            ></div>
+          </div>
         </div>`).join("")}
+    </div>
+    <div class="forecast-mini-footer">
+      <span>Spread ${spread.toFixed(2)}</span>
+      <span>Range ${minValue.toFixed(1)} - ${maxValue.toFixed(1)}</span>
     </div>`;
 
   renderBars(modelChart, entries);
@@ -913,6 +1078,165 @@ function renderScatterChart() {
     ${dots}${axisLabels}`;
 }
 
+function renderCitySeasonMatrix() {
+  const allValues = citySeries.flatMap((series) => series.values);
+  const max = Math.max(...allValues);
+  const min = Math.min(...allValues);
+  const range = Math.max(max - min, 1);
+
+  citySeasonMatrix.innerHTML = `
+    <div class="season-matrix-row season-matrix-head">
+      <div class="season-matrix-label">City</div>
+      ${seasonBuckets.map((bucket) => `<div class="season-matrix-head-cell">${bucket.label}</div>`).join("")}
+    </div>
+    ${citySeries.map((series) => `
+      <div class="season-matrix-row">
+        <div class="season-matrix-label">
+          <i class="season-matrix-dot" style="background:${series.color}"></i>
+          <span>${series.name}</span>
+        </div>
+        ${seasonBuckets.map((bucket) => {
+          const seasonalAverage = average(bucket.months.map((monthIndex) => series.values[monthIndex]));
+          const intensity = (seasonalAverage - min) / range;
+          return `
+            <div class="season-matrix-cell" style="--cell-strength:${(0.26 + intensity * 0.68).toFixed(2)}">
+              <strong class="season-matrix-value">${seasonalAverage.toFixed(0)}</strong>
+              <span class="season-matrix-note">${getAqiCategory(seasonalAverage).label}</span>
+            </div>`;
+        }).join("")}
+      </div>`).join("")}`;
+}
+
+function renderCityComparisonBars() {
+  cityComparisonBars.innerHTML = citySeries.map((series) => {
+    const peak = Math.max(...series.values);
+    const trough = Math.min(...series.values);
+    const yearlyAvg = average(series.values);
+    const recovery = series.values[11] - trough;
+    return `
+      <article class="comparison-bar-card">
+        <div class="comparison-bar-header">
+          <div class="comparison-bar-title">
+            <i class="season-matrix-dot" style="background:${series.color}"></i>
+            <strong>${series.name}</strong>
+          </div>
+          <span>${yearlyAvg.toFixed(0)} AQI avg</span>
+        </div>
+        <div class="comparison-bar-stack">
+          <div class="comparison-bar-row">
+            <span>Peak</span>
+            <div class="comparison-bar-track">
+              <div class="comparison-bar-fill" style="width:${(peak / 360) * 100}%;background:${series.color}"></div>
+            </div>
+            <strong>${peak}</strong>
+          </div>
+          <div class="comparison-bar-row">
+            <span>Lowest</span>
+            <div class="comparison-bar-track">
+              <div class="comparison-bar-fill is-soft" style="width:${(trough / 360) * 100}%;background:${series.color}"></div>
+            </div>
+            <strong>${trough}</strong>
+          </div>
+          <div class="comparison-bar-row">
+            <span>Recovery</span>
+            <div class="comparison-bar-track">
+              <div class="comparison-bar-fill is-accent" style="width:${(recovery / 220) * 100}%;background:${series.color}"></div>
+            </div>
+            <strong>${recovery}</strong>
+          </div>
+        </div>
+      </article>`;
+  }).join("");
+}
+
+function renderScatterChart() {
+  const container = document.getElementById("scatter-chart");
+  const W=720, H=300, PL=48, PR=20, PT=20, PB=36;
+  const xs = scatterPoints.map((p) => p.pm25);
+  const ys = scatterPoints.map((p) => p.aqi);
+  const xMin=0, xMax=200, yMin=0, yMax=500;
+  const scX = (value) => PL + (value-xMin)/(xMax-xMin) * (W-PL-PR);
+  const scY = (value) => PT + (1-(value-yMin)/(yMax-yMin)) * (H-PT-PB);
+
+  let grid = "";
+  for (let y=0; y<=500; y+=100) {
+    const py = scY(y).toFixed(1);
+    grid += `<line x1="${PL}" y1="${py}" x2="${W-PR}" y2="${py}" class="chart-grid-line"/>
+    <text x="${PL-6}" y="${py}" text-anchor="end" font-size="10" fill="#61716b" font-family="Manrope,sans-serif" dominant-baseline="middle">${y}</text>`;
+  }
+  for (let x=0; x<=200; x+=50) {
+    const px = scX(x).toFixed(1);
+    grid += `<line x1="${px}" y1="${PT}" x2="${px}" y2="${H-PB}" class="chart-grid-line chart-grid-line-vertical"/>
+    <text x="${px}" y="${H-PB+14}" text-anchor="middle" font-size="10" fill="#61716b" font-family="Manrope,sans-serif">${x}</text>`;
+  }
+
+  const n = scatterPoints.length;
+  const sumX = xs.reduce((a,b)=>a+b,0);
+  const sumY = ys.reduce((a,b)=>a+b,0);
+  const sumXY = scatterPoints.reduce((sum, point)=>sum+point.pm25*point.aqi,0);
+  const sumX2 = xs.reduce((sum, value)=>sum+value*value,0);
+  const m = (n*sumXY - sumX*sumY)/(n*sumX2 - sumX*sumX);
+  const b = (sumY - m*sumX)/n;
+  const tx1 = scX(0).toFixed(1);
+  const ty1 = scY(b).toFixed(1);
+  const tx2 = scX(180).toFixed(1);
+  const ty2 = scY(m*180+b).toFixed(1);
+
+  const dots = scatterPoints.map((point, index) => {
+    const cat = getAqiCategory(point.aqi);
+    const colors = { good:"#3a8d7d", satisfactory:"#7ca982", moderate:"#c69b4d", poor:"#d18642", "very-poor":"#ca6f4c", severe:"#9b3d31" };
+    return `
+      <circle class="scatter-point-ring" cx="${scX(point.pm25).toFixed(1)}" cy="${scY(point.aqi).toFixed(1)}" r="11" fill="${colors[cat.tone]}" fill-opacity="0.12"/>
+      <circle class="scatter-point" data-index="${index}" cx="${scX(point.pm25).toFixed(1)}" cy="${scY(point.aqi).toFixed(1)}" r="7"
+        fill="${colors[cat.tone]}" opacity="0.84" stroke="white" stroke-width="2"/>`;
+  }).join("");
+
+  const axisLabels = `
+    <text x="${(PL+(W-PR))/2}" y="${H}" text-anchor="middle" font-size="11" fill="#61716b" font-family="Manrope,sans-serif">PM2.5 (Âµg/mÂ³)</text>
+    <text x="12" y="${(PT+(H-PB))/2}" text-anchor="middle" font-size="11" fill="#61716b" font-family="Manrope,sans-serif" transform="rotate(-90,12,${(PT+(H-PB))/2})">AQI</text>`;
+
+  container.innerHTML = `
+    <div class="interactive-chart-wrap interactive-scatter-wrap">
+      <svg viewBox="0 0 ${W} ${H}" class="chart-svg scatter-svg chart-svg-detailed">
+        ${grid}
+        <line x1="${tx1}" y1="${ty1}" x2="${tx2}" y2="${ty2}" class="scatter-trend-line"/>
+        ${dots}
+        ${axisLabels}
+      </svg>
+      <div id="scatter-tooltip" class="chart-tooltip is-hidden"></div>
+    </div>
+    <div class="chart-legend">
+      <span class="legend-chip"><i style="background:#3a8d7d"></i>Good-Satisfactory</span>
+      <span class="legend-chip"><i style="background:#c69b4d"></i>Moderate</span>
+      <span class="legend-chip"><i style="background:#ca6f4c"></i>Poor-Severe</span>
+      <span class="legend-chip"><i style="background:#8bbfbd"></i>Trend line</span>
+    </div>`;
+
+  const tooltip = document.getElementById("scatter-tooltip");
+  const wrap = container.querySelector(".interactive-chart-wrap");
+  const points = container.querySelectorAll(".scatter-point");
+  const showTooltip = (index, clientX, clientY) => {
+    const point = scatterPoints[index];
+    const category = getAqiCategory(point.aqi);
+    tooltip.classList.remove("is-hidden");
+    tooltip.innerHTML = `
+      <div class="chart-tooltip-title">${category.label}</div>
+      <div class="chart-tooltip-row"><span>PM2.5</span><strong>${point.pm25}</strong></div>
+      <div class="chart-tooltip-row"><span>AQI</span><strong>${point.aqi}</strong></div>
+      <div class="chart-tooltip-row"><span>Residual</span><strong>${(point.aqi - (m * point.pm25 + b)).toFixed(1)}</strong></div>`;
+    const rect = wrap.getBoundingClientRect();
+    const tooltipWidth = tooltip.offsetWidth || 170;
+    tooltip.style.left = `${clamp(clientX - rect.left, tooltipWidth / 2 + 12, rect.width - tooltipWidth / 2 - 12)}px`;
+    tooltip.style.top = `${clamp(clientY - rect.top - 82, 12, rect.height - 108)}px`;
+  };
+
+  points.forEach((point) => {
+    point.addEventListener("mouseenter", (event) => showTooltip(Number(point.dataset.index), event.clientX, event.clientY));
+    point.addEventListener("mousemove", (event) => showTooltip(Number(point.dataset.index), event.clientX, event.clientY));
+    point.addEventListener("mouseleave", () => tooltip.classList.add("is-hidden"));
+  });
+}
+
 // ── Sidebar live AQI ──────────────────────────────────────────────────────────
 function renderSidebarSparkline() {
   const vals = [210,218,203,225,196,214,208,222,200,203];
@@ -999,13 +1323,33 @@ async function predictAQI(event) {
 
 // ── Wire up events ────────────────────────────────────────────────────────────
 navToggle?.addEventListener("click", toggleMobileNav);
+sidebarBackdrop?.addEventListener("click", closeMobileNav);
 navLinks.forEach(btn  => btn.addEventListener("click",  () => showPage(btn.dataset.page)));
 jumpButtons.forEach(btn => btn.addEventListener("click", () => showPage(btn.dataset.page)));
 predictionForm.addEventListener("submit", predictAQI);
 sampleButton.addEventListener("click", fillSampleData);
 
 window.addEventListener("resize", () => {
-  if (window.innerWidth > 700) {
+  if (!isMobileNavViewport()) {
+    closeMobileNav();
+  } else {
+    mobileNavPanel?.setAttribute("aria-hidden", sidebar?.classList.contains("is-open") ? "false" : "true");
+  }
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    closeMobileNav();
+  }
+});
+
+document.addEventListener("click", (event) => {
+  if (
+    isMobileNavViewport() &&
+    sidebar?.classList.contains("is-open") &&
+    sidebar &&
+    !sidebar.contains(event.target)
+  ) {
     closeMobileNav();
   }
 });
@@ -1023,9 +1367,11 @@ renderBars(accuracyChart, modelPerformance.map(model => ({
 renderBars(document.getElementById("agreement-bars"), agreementData, "%");
 renderSingleTrendChart(homeTrendChart, monthlyTrendData);
 renderMultiSeriesChart(cityTrendChart, citySeries);
+renderCitySeasonMatrix();
 renderRiskMatrix();
 renderContributionMix();
 renderCityRanking();
+renderCityComparisonBars();
 renderPredictionResult({
   "Linear Regression": 210,
   "Random Forest": 196,
@@ -1045,6 +1391,7 @@ safeRender(() => renderMonthlyHeatmap());
 safeRender(() => renderScatterChart());
 safeRender(() => renderSidebarSparkline());
 renderVisiblePageCharts("home");
+mobileNavPanel?.setAttribute("aria-hidden", isMobileNavViewport() ? "true" : "false");
 
 const peak = monthlyTrendData.reduce((p,c) => c.value>p.value ? c : p);
 homeTrendPeak.textContent = `${peak.value} in ${peak.label}`;
